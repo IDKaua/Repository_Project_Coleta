@@ -1,0 +1,165 @@
+.main-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  background-color: #1a1d1d;
+  display: flex;
+  align-items: center;
+  z-index: 1000;
+  padding: 0 5%;
+}
+
+.header-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-glass {
+  background: rgba(10, 15, 10, 0.85);
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  width: 100%;
+  left: 0;
+  top: 0;
+  padding: 20px 4%; /* Padding lateral em % para alinhar com o conteúdo */
+  box-sizing: border-box;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  color: #888;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+.header-logo-icon {
+  color: #22c55e;
+  margin-right: 10px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center; /* Alinha ícone e texto na mesma linha */
+  gap: 12px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+/* Estilo do Menu de Navegação */
+.header-nav ul {
+  display: flex;
+  list-style: none;
+  gap: 25px;
+}
+
+.header-nav a {
+  text-decoration: none;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  position: relative; /* Necessário para a linha se posicionar */
+  padding: 5px 0;
+  transition: color 0.3s ease;
+}
+
+.header-nav a:hover {
+  color: #22c55e; /* Hover verde */
+}
+
+/* NOVO ESTILO: ÁREA DE LOGIN CLICÁVEL */
+.header-login-area {
+  display: flex;
+  align-items: center;
+  text-decoration: none; /* Remove sublinhado do link inteiro */
+  color: #fff;
+  gap: 10px; /* Espaço entre ícone e texto */
+  transition: all 0.3s ease;
+  padding: 8px 15px;
+  border-radius: 20px;
+}
+
+.header-login-area:hover {
+  background-color: rgba(255, 255, 255, 0.05); /* Efeito de fundo sutil no hover */
+  transform: translateY(-2px); /* Movimento leve */
+}
+
+/* Caixa do ícone de login */
+.login-icon-box {
+  font-size: 1.5rem; /* Tamanho do ícone */
+  color: #22c55e; /* Verde para o ícone */
+}
+
+/* Texto "Faça Login" */
+.login-text {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.nav-links a {
+  color: white;
+  margin-left: 2rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  position: relative;
+  padding: 5px 0;
+}
+
+/* Efeito da linha verde surgindo (Pseudo-elemento) */
+.header-nav a::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: #22c55e;
+  transition: width 0.3s ease;
+}
+
+.header-nav a:hover {
+  color: #22c55e;
+}
+
+.header-nav a:hover::after {
+  width: 100%; /* A linha cresce no hover */
+}
+
+.header-login-area {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #fff;
+  gap: 10px;
+  transition: all 0.3s ease;
+  padding: 8px 15px;
+  border-radius: 20px;
+}
+
+.header-login-area:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+}
+
+/* Caixa do ícone de login */
+.login-icon-box {
+  font-size: 1.5rem; /* Tamanho do ícone */
+  color: #22c55e; /* Verde para o ícone */
+}
+
+/* Texto "Faça Login" */
+.login-text {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
