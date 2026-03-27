@@ -1,13 +1,13 @@
-package com.coleta.repository;
+package com.java.coleta;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class Application {
+public class ColetaApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
+		SpringApplication.run(ColetaApplication.class, args);
 	}
 
 }

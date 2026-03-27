@@ -1,10 +1,10 @@
-package com.coleta.repository;
+package com.java.coleta;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ApplicationTests {
+class ColetaApplicationTests {
 
 	@Test
 	void contextLoads() {
