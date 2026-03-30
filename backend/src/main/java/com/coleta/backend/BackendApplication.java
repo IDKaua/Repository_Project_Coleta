@@ -1,13 +1,13 @@
-package com.java.coleta;
+package com.coleta.backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ColetaApplication {
+public class BackendApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ColetaApplication.class, args);
+		SpringApplication.run(BackendApplication.class, args);
 	}
 
 }
