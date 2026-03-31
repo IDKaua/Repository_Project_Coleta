@@ -1,10 +1,11 @@
 /* Layout Geral */
 .coleta-wrapper {
-  background-color: #0a0f0a;
+  background-color: #dcf2e3; /* Verde suave da imagem */
   min-height: 100vh;
-  padding-top: 100px;
-  color: white;
+  padding-top: 60px;
+  color: #1a1d1d;
   padding-bottom: 50px;
+  font-family: sans-serif;
 }
 
 .coleta-container {
@@ -13,13 +14,27 @@
   padding: 0 20px;
 }
 
+/* Título com contraste máximo */
+.titulo-sessao {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #2C2C2C; 
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 750; /* Peso mais fino é considerado mais elegante */
+  font-size: 2rem;
+}
+
 .coleta-card {
   background: #ffffff;
   border-radius: 15px;
-  padding: 30px;
+  padding: 50px;
   color: #333;
   margin-bottom: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  height:auto;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
 .coleta-grid {
@@ -28,76 +43,30 @@
   gap: 20px;
 }
 
-/* Inputs Gerais */
+/* Inputs e Selects */
 input, select {
   width: 100%;
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   font-size: 14px;
   background-color: white;
   color: #333;
 }
 
-/* --- ALINHAMENTO CARD ESQUERDO --- */
-.info-lixo-row {
-  display: flex;
-  gap: 15px;
-  align-items: flex-end;
-  margin-bottom: 25px;
+/* Porte da Coleta */
+.porte-section {
+  margin-top: 10px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
 }
 
-.input-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.flex-grow {
-  flex: 1;
-}
-
-.input-item label {
-  font-size: 13px;
-  font-weight: bold;
-  color: #666;
-}
-
-/* Contador */
-.contador-container {
-  display: flex;
-  align-items: center;
-  background: #f3f4f6;
-  border-radius: 8px;
-  padding: 5px;
-  width: 130px;
-  border: 1px solid #ddd;
-}
-
-.contador-container input {
-  border: none;
-  background: transparent;
-  text-align: center;
-  font-weight: bold;
-  font-size: 16px;
-  color: #1a1a1a !important;
-}
-
-.contador-container button {
-  background: #22c55e;
-  color: white;
-  border: none;
-  width: 35px;
-  height: 30px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-/* --- PORTE --- */
 .porte-selector {
   display: flex;
-  gap: 10px;
+  background: #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #ddd;
   margin-top: 10px;
 }
 
@@ -106,95 +75,260 @@ input, select {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
   padding: 15px;
-  border-radius: 12px;
   cursor: pointer;
-  transition: 0.3s;
-  border: 1px solid #ddd;
+  transition: all 0.3s ease;
+  color: #4b5563;
   font-weight: bold;
+  background: #e5e7eb;
 }
 
-.porte-btn.inactive { background-color: #f9fafb; color: #9ca3af; }
-.porte-btn.active { background-color: #22c55e; color: white; border-color: #22c55e; }
+.porte-btn.active {
+  background-color: #3d8c3d; /* Verde escuro da imagem */
+  color: #ffffff;
+}
 
-/* --- ENDEREÇO --- */
-.form-group { margin-bottom: 15px; }
+.porte-btn:not(.active):hover {
+  background-color: #d1d5db;
+}
 
-.endereco-linha-dupla {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 10px;
+/* Seção de Agendamento (Fundo Cinza como na imagem) */
+.agendamento-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 15px;
 }
 
-.endereco-linha-tripla {
-  display: grid;
-  grid-template-columns: 1.5fr 1.5fr 0.5fr;
-  gap: 10px;
-  margin-bottom: 15px;
+.icon-buttons-group {
+  display: flex;
+  gap: 5px;
 }
 
-/* --- AGENDAMENTO E CALENDÁRIO --- */
-/* --- AGENDAMENTO E CALENDÁRIO (CORREÇÃO DEFINITIVA DO ÍCONE) --- */
-.agendamento-box {
-  margin-top: 20px;
-  border-top: 1px solid #eee;
-  padding-top: 15px;
-}
-
-.agendamento-inputs {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 10px;
-}
-
-/* Estilo para os inputs de data e hora */
-input[type="date"], input[type="time"] {
-  position: relative;
-  appearance: none; /* Reseta estilos estranhos do browser */
-  -webkit-appearance: none;
+.btn-icon-square {
+  background: #e5e7eb;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  width: 35px;
+  height: 35px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding-right: 12px; /* Espaço para o ícone */
+  justify-content: center;
+  color: #374151;
 }
 
-/* Força o ícone nativo a ficar visível, preto e por cima de tudo */
-input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="time"]::-webkit-calendar-picker-indicator {
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="15" viewBox="0 0 24 24"><path fill="black" d="M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13z"/></svg>');
-  background-repeat: no-repeat;
-  background-position: center;
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  opacity: 1;
-  z-index: 10;
-  filter: none; /* Garante que o SVG preto não mude de cor */
+.input-with-icon-side {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  overflow: hidden;
 }
 
-/* Remove a seta estranha que alguns browsers colocam */
-input[type="date"]::-webkit-inner-spin-button,
-input[type="date"]::-webkit-clear-button {
-  display: none;
+.icon-box-side {
+  background: #e5e7eb;
+  padding: 10px;
+  min-width: 40px;
+  display: flex;
+  justify-content: center;
+  color: #4b5563;
+  border-right: 1px solid #ddd;
 }
 
-/* Fotos */
-.photo-placeholders { display: flex; gap: 15px; justify-content: center; margin-top: 20px; }
-.box-upload { width: 80px; height: 80px; background: #f3f4f6; border: 2px dashed #9ca3af; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 24px; }
+.input-with-icon-side input {
+  border: none !important;
+  padding: 10px;
+  flex: 1;
+}
+
+.input-simples {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.icon-box-side {
+  background: #e5e7eb;
+  padding: 10px;
+  min-width: 40px;
+  display: flex;
+  justify-content: center;
+  color: #4b5563;
+  border-right: 1px solid #ddd;
+}
+
+.input-with-icon-side input {
+  border: none !important;
+  padding: 10px;
+  flex: 1;
+}
+
+.input-simples {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.info-lixo-row {
+  display: flex;
+  gap: 15px;
+  align-items: flex-end; /* Garante que as caixas fiquem alinhadas por baixo */
+  margin-bottom: 20px;
+}
+
+.info-lixo-card {
+  padding-bottom: 15px !important;
+}
+
+.tipo-equipamento {
+  flex: 2; /* Ocupa mais espaço horizontal */
+}
+
+.quantidade-box {
+  flex: 1; /* Ocupa menos espaço horizontal */
+  min-width: 140px;
+}
 
 /* Botão Enviar */
 .btn-enviar-solicitacao {
-  background: #22c55e;
-  width: 100%;
-  max-width: 400px;
-  margin: 40px auto;
+  background: #438e44;
+  width: fit-content;
+  min-width: 300px;
+  margin: 30px auto;
   display: block;
-  padding: 15px;
+  padding: 12px 40px;
   border-radius: 8px;
-  font-weight: 900;
+  font-weight: bold;
   border: none;
   color: white;
   cursor: pointer;
+  text-transform: uppercase;
 }
+
+/* Layout do Card de Upload Estilo Wireframe */
+.upload-container-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.upload-info-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+}
+
+.camera-icon-circle {
+  background: #f3f4f6;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4b5563;
+  font-size: 30px;
+  flex-shrink: 0;
+}
+
+.upload-text-group {
+  text-align: left;
+}
+
+.upload-text-group h3 {
+  margin: 0 0 5px 0;
+  font-size: 20px;
+  color: #1f2937;
+}
+
+.upload-text-group p {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+  max-width: 300px;
+}
+
+.upload-controls-right {
+  text-align: right;
+}
+
+.upload-controls-right label {
+  display: block;
+  font-size: 13px;
+  font-weight: bold;
+  color: #374151;
+  margin-bottom: 10px;
+}
+
+.photo-placeholders {
+  display: flex;
+  gap: 50px;
+  justify-content: center;
+}
+
+.box-upload {
+  width: 60px;
+  height: 50px;
+  background: #f9fafb;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.box-upload:hover {
+  border-color: #438e44;
+  color: #438e44;
+  background: #f0fdf4;
+}
+
+.contador-container {
+  display: flex;
+  align-items: center;
+  background: #f3f4f6; /* Fundo cinza claro igual ao mockup */
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  height: 42px; /* Mesma altura do select para não entortar */
+  overflow: hidden;
+}
+
+.btn-counter {
+  background: #2ad12c;
+  border: none;
+  width: 35px;
+  height: 100%;
+  cursor: pointer;
+  font-size: 18px;
+  color: #374151;
+  transition: background 0.2s;
+}
+
+.btn-counter:hover {
+  background: #d1d5db;
+}
+
+.input-quantidade {
+  flex: 1;
+  border: none !important;
+  background: white !important;
+  text-align: center;
+  height: 100%;
+  font-weight: bold;
+  width: 100%;
+}
+
+.input-quantidade::-webkit-inner-spin-button,
+.input-quantidade::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+

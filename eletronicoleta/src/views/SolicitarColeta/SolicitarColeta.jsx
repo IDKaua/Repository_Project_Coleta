@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import Header from '../../components/Header/Header';
 import './SolicitarColeta.css';
 
 const SolicitarColeta = () => {
   const [formData, setFormData] = useState({
     tipo_residuo: 'Computadores',
     quantidade: 1,
-    porte: 'Pequeno',
+    porte: 'Pequeno', // Estado para controlar qual porte está selecionado
     nome_solicitante: '',
     cep: '',
     rua: '',
@@ -15,117 +14,157 @@ const SolicitarColeta = () => {
     cidade: '',
     uf: '',
     ponto_referencia: '',
-    data_agendamento: '',
-    hora_agendamento: ''
+    data: '',
+    hora: ''
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prevState => ({ ...prevState, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const alterarQuantidade = (valor) => {
-    setFormData(prev => ({ ...prev, quantidade: Math.max(1, prev.quantidade + valor) }));
+  // Função para alterar o porte selecionado
+  const selecionarPorte = (tamanho) => {
+    setFormData(prev => ({ ...prev, porte: tamanho }));
   };
 
   return (
     <div className="coleta-wrapper">
-      <Header />
       <main className="coleta-container">
-        <nav className="breadcrumb">Início &gt; Solicitar Coleta</nav>
         <h1 className="titulo-sessao">NOVA SOLICITAÇÃO DE COLETA</h1>
 
-        <form onSubmit={(e) => { e.preventDefault(); console.log(formData); }}>
-          
-          <section className="coleta-card upload-card">
-            <div className="upload-section">
-              <div className="upload-info">
-                <i className="fas fa-camera main-upload-icon"></i>
-                <h3>Anexar Fotos</h3>
-                <p>Anexe até 3 fotos do lixo eletrônico para ajudar na triagem</p>
+        <form onSubmit={(e) => e.preventDefault()}>
+          {/* Card de Fotos (Layout Centralizado + Direita) */}
+          <section className="coleta-card upload-card-grande">
+            <div className="upload-content">
+              <div className="upload-text-center">
+                <i className="fas fa-camera" style={{ fontSize: '35px', color: '#4b5563' }}></i>
+                <h3 style={{ fontSize: '18px', margin: '10px 0' }}>Anexar Fotos</h3>
+                <p style={{ fontSize: '14px', color: '#666', margin: '10px 0' }}>
+                  Anexe até 3 fotos do lixo eletrônico para ajudar na triagem
+                </p>
               </div>
-              <div className="photo-placeholders">
-                <div className="box-upload"><i className="fas fa-image"></i></div>
-                <div className="box-upload"><i className="fas fa-image"></i></div>
-                <div className="box-upload"><i className="fas fa-image"></i></div>
+              <div className="upload-right-side">
+                <span style={{ fontSize: '13px', fontWeight: 'bold' }}></span>
+                <div className="photo-placeholders">
+                  <div className="box-upload"><i className="far fa-image"></i></div>
+                  <div className="box-upload"><i className="far fa-image"></i></div>
+                  <div className="box-upload"><i className="far fa-image"></i></div>
+                </div>
               </div>
             </div>
           </section>
 
           <div className="coleta-grid">
-            {/* Lado Esquerdo: Info do Lixo - ALINHADO */}
+            {/* INFORMAÇÕES DO LIXO */}
             <section className="coleta-card">
               <h3>Informações do Lixo</h3>
-              
               <div className="info-lixo-row">
-                <div className="input-item flex-grow">
-                  <label><i className="fas fa-desktop"></i> Tipo de Equipamento</label>
-                  <select name="tipo_residuo" value={formData.tipo_residuo} onChange={handleChange}>
-                    <option value="Computadores">Computadores</option>
-                    <option value="Celulares">Celulares</option>
-                    <option value="Perifericos">Periféricos</option>
-                  </select>
-                </div>
-
-                <div className="input-item">
-                  <label><i className="fas fa-boxes"></i> Quantidade</label>
-                  <div className="contador-container">
-                    <button type="button" onClick={() => alterarQuantidade(-1)}>-</button>
-                    <input 
-                      type="number" 
-                      name="quantidade" 
-                      value={formData.quantidade} 
-                      readOnly
-                    />
-                    <button type="button" onClick={() => alterarQuantidade(1)}>+</button>
+  <div className="input-item tipo-equipamento">
+    <label><i className="fas fa-desktop"></i> Tipo de Equipamento</label>
+    <select name="tipo_residuo">
+      <option>🖥️ Computadores</option>
+      <option>📱 Celulares</option>
+      <option>⌨️ Periféricos</option>
+      <option>🎰 Eletrodomésticos</option>
+    </select>
+  </div>
+                <div className="input-item quantidade-box">
+    <label><i className="fas fa-cube"></i> Quantidade Aproximada</label>
+    <div className="contador-container">
+                   <button type="button" className="btn-counter" onClick={() => setFormData(p => ({...p, quantidade: Math.max(1, p.quantidade-1)}))}>-</button>
+      <input type="number" className="input-quantidade" value={formData.quantidade} readOnly />
+                    <button type="button" className="btn-counter" onClick={() => setFormData(p => ({...p, quantidade: p.quantidade+1}))}>+</button>
                   </div>
                 </div>
               </div>
 
-              <div className="porte-container-info">
-                <label><i className="fas fa-weight-hanging"></i> Porte da Coleta</label>
+              {/* SELETOR DE PORTE DINÂMICO */}
+              <div className="porte-section">
+                <h4><i className="fas fa-suitcase"></i> Porte da Coleta</h4>
                 <div className="porte-selector">
-                  {['Pequeno', 'Médio', 'Grande'].map((p) => (
-                    <button 
-                      key={p}
-                      type="button" 
-                      className={`porte-btn ${formData.porte === p ? 'active' : 'inactive'}`} 
-                      onClick={() => setFormData({...formData, porte: p})}
-                    >
-                      <i className={`fas ${p === 'Pequeno' ? 'fa-mobile-alt' : p === 'Médio' ? 'fa-laptop' : 'fa-tv'}`}></i>
-                      {p}
-                    </button>
-                  ))}
+                  <div 
+                    className={`porte-btn ${formData.porte === 'Pequeno' ? 'active' : ''}`}
+                    onClick={() => selecionarPorte('Pequeno')}
+                  >
+                    <i className="fas fa-boxes"></i>
+                    <span>Pequeno</span>
+                  </div>
+                  <div 
+                    className={`porte-btn ${formData.porte === 'Médio' ? 'active' : ''}`}
+                    onClick={() => selecionarPorte('Médio')}
+                  >
+                    <i className="fas fa-archive"></i>
+                    <span>Médio</span>
+                  </div>
+                  <div 
+                    className={`porte-btn ${formData.porte === 'Grande' ? 'active' : ''}`}
+                    onClick={() => selecionarPorte('Grande')}
+                  >
+                    <i className="fas fa-briefcase"></i>
+                    <span>Grande</span>
+                  </div>
                 </div>
               </div>
             </section>
 
-            {/* Lado Direito: Endereço (COMPLETO) e Calendário */}
-            <section className="coleta-card">
-              <h3>Endereço da Coleta</h3>
-              <div className="form-group"><input type="text" name="nome_solicitante" placeholder="Nome do Solicitante" onChange={handleChange} /></div>
-              
-              <div className="endereco-linha-dupla">
-                <input type="text" name="cep" placeholder="CEP" onChange={handleChange} />
-                <input type="text" name="numero" placeholder="Nº" onChange={handleChange} />
-              </div>
+            <div className="coluna-direita">
+              {/* ENDEREÇO DA COLETA (RESTAURADO) */}
+              <section className="coleta-card">
+                <h3>Endereço da Coleta</h3>
+                <div className="input-with-icon-side">
+                  <div className="icon-box-side"><i className="fas fa-user"></i></div>
+                  <input type="text" name="nome_solicitante" placeholder="Nome do Solicitante" onChange={handleChange} />
+                </div>
+                <div className="input-with-icon-side">
+                  <div className="icon-box-side"><i className="fas fa-user"></i></div>
+                  <input type="text" name="cep" placeholder="CEP" onChange={handleChange} />
+                </div>
+                <div className="endereco-linha-dupla">
+                  <div className="input-with-icon-side flex-grow">
+                    <div className="icon-box-side"><i className="fas fa-home"></i></div>
+                    <input type="text" name="rua" placeholder="Rua" onChange={handleChange} />
+                  </div>
+                  <input type="text" name="numero" placeholder="Número" className="input-simples" onChange={handleChange} />
+                </div>
+                <div className="endereco-linha-tripla">
+                  <div className="input-with-icon-side">
+                    <div className="icon-box-side"><i className="fas fa-map-marker-alt"></i></div>
+                    <input type="text" name="bairro" placeholder="Bairro" onChange={handleChange} />
+                  </div>
+                  <div className="input-with-icon-side">
+                    <div className="icon-box-side"><i className="fas fa-globe"></i></div>
+                    <input type="text" name="cidade" placeholder="Cidade" onChange={handleChange} />
+                  </div>
+                  <input type="text" name="uf" placeholder="UF" className="input-simples" onChange={handleChange} />
+                </div>
+                <div className="input-with-icon-side">
+                  <div className="icon-box-side"><i className="fas fa-map-marker-alt"></i></div>
+                  <input type="text" name="ponto_referencia" placeholder="Ponto de Referência" onChange={handleChange} />
+                </div>
+              </section>
 
-              <div className="form-group"><input type="text" name="rua" placeholder="Rua / Logradouro" onChange={handleChange} /></div>
-
-              <div className="endereco-linha-tripla">
-                <input type="text" name="bairro" placeholder="Bairro" onChange={handleChange} />
-                <input type="text" name="cidade" placeholder="Cidade" onChange={handleChange} />
-                <input type="text" name="uf" placeholder="UF" onChange={handleChange} />
-              </div>
-              
-              <div className="agendamento-box">
-                <h4><i className="fas fa-calendar-alt"></i> Sugestão de Agendamento</h4>
+              {/* AGENDAMENTO */}
+              <section className="coleta-card agendamento-card">
+                <div className="agendamento-header">
+                  <h3>Agendamento</h3>
+                  <div className="icon-buttons-group">
+                    <div className="btn-icon-square"><i className="fas fa-calendar-alt"></i></div>
+                    <div className="btn-icon-square"><i className="fas fa-clock"></i></div>
+                  </div>
+                </div>
                 <div className="agendamento-inputs">
-                  <input type="date" name="data_agendamento" className="input-calendario" onChange={handleChange} />
-                  <input type="time" name="hora_agendamento" className="input-hora" onChange={handleChange} />
+                  <div className="input-with-icon">
+                    <div className="input-icon-box"><i className="fas fa-calendar-day"></i></div>
+                    <input type="text" placeholder="Data" />
+                  </div>
+                  <div className="input-with-icon">
+                    <div className="input-icon-box"><i className="fas fa-clock"></i></div>
+                    <input type="text" placeholder="Hora" />
+                  </div>
                 </div>
-              </div>
-            </section>
+              </section>
+            </div>
           </div>
 
           <button type="submit" className="btn-enviar-solicitacao">ENVIAR SOLICITAÇÃO</button>

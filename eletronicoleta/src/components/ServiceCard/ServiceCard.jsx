@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 const ServiceCard = ({ tipo, icone, desc }) => {
   const navigate = useNavigate();
   const handleAccess = () => {
-    if (tipo === "MORADOR") {
+    if (tipo === "USUÁRIO") {
       navigate('/solicitar-coleta');
     } else {
       // Lógica para os outros cards

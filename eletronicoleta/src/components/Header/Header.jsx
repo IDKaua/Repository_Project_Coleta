@@ -1,35 +1,39 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './Header.css';
 
 const Header = () => {
   return (
-    <header className="main-header">
+    <header className="main-header header-glass">
       <div className="header-container">
-        {/* Lado Esquerdo: Logo */}
-        <div className="header-logo">
-          <i className="fas fa-recycle header-logo-icon"></i>
-          <span>ELETRONICOLETA</span>
-        </div>
+        {/* Logo alinhada conforme a imagem */}
+        <Link to="/" className="header-logo">
+          <div className="logo-container">
+            <i className="fas fa-recycle header-logo-icon"></i>
+            <span>EcoTech</span>
+          </div>
+        </Link>
 
-        {/* Lado Direito: Menu + Login */}
+        {/* Menu de Navegação ajustado para: Início, Serviços e Sobre Nós */}
         <div className="header-actions">
           <nav className="header-nav">
             <ul>
-              <li><a href="#home">Home</a></li>
-              <li><a href="#funcoes">Funções</a></li>
-              <li><a href="#sobre">Sobre</a></li>
-              <li><a href="#fale-conosco">Fale Conosco</a></li>
+              <li><Link to="/">Início</Link></li>
+              <li><Link to="#">Serviços</Link></li>
+              <li><Link to="#">Parceiros</Link></li>
+              <li><Link to="#">Funçoes</Link></li>
+              <li><Link to="#">Campanha</Link></li>
+              <li><Link to="/sobre">Sobre Nós</Link></li>
             </ul>
           </nav>
 
-          {/* NOVO BLOCO DE LOGIN: Clicável para a tela de login */}
-          {/* Se usar rotas, mude <a> por <Link to="/login"> */}
-          <a href="/login" className="header-login-area">
+          {/* Área de Login */}
+          <Link to="/login" className="header-login-area">
             <div className="login-icon-box">
-              <i className="fas fa-user-circle"></i> {/* Ícone de usuário redondo */}
+              <i className="fas fa-user-circle"></i>
             </div>
             <span className="login-text">Faça Login</span>
-          </a>
+          </Link>
         </div>
       </div>
     </header>
