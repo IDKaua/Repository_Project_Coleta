@@ -47,6 +47,26 @@ public class ColetaController {
 
         return ResponseEntity.status(404).body("Erro: Morador não encontrado!");
     }
+    
+    // Rota para a Cooperativa finalizar a coleta! (Método PUT)
+    @PutMapping("/finalizar/{coletaId}")
+    public ResponseEntity<?> finalizarColeta(@PathVariable Long coletaId) {
+        
+        // 1. Procura a coleta pelo ID dela
+        Optional<Coleta> coletaOpt = coletaRepository.findById(coletaId);
+
+        if (coletaOpt.isPresent()) {
+            Coleta coleta = coletaOpt.get();
+            
+            // 2. Muda o status para COLETADO
+            coleta.setStatus("COLETADO");
+            coletaRepository.save(coleta);
+            
+            return ResponseEntity.ok("Sucesso! Coleta finalizada. O morador foi destravado!");
+        }
+
+        return ResponseEntity.status(404).body("Erro: Coleta não encontrada!");
+    }
 
     @GetMapping("/all")
     public List<Coleta> getAllColetas() {
