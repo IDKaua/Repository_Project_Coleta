@@ -1,10 +1,15 @@
 package com.coleta.backend.controller;
 
 import com.coleta.backend.model.Coleta;
+import com.coleta.backend.model.Usuario;
 import com.coleta.backend.repository.ColetaRepository;
+import com.coleta.backend.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/coletas")
@@ -14,22 +19,37 @@ public class ColetaController {
     @Autowired
     private ColetaRepository coletaRepository;
 
-    // Rota para SALVAR (Obrigatória para o Postman)
-    @PostMapping
-    public Coleta salvar(@RequestBody Coleta coleta) {
-        return coletaRepository.save(coleta);
+    // Adicionamos o repositório de usuários aqui!
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @PostMapping("/solicitar/{usuarioId}")
+    public ResponseEntity<?> solicitarColeta(@PathVariable Long usuarioId, @RequestBody Coleta coleta) {
+        
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
+
+        if (usuarioOpt.isPresent()) {
+            Usuario morador = usuarioOpt.get();
+
+            // A trava de segurança!
+            boolean temColetaEmAndamento = coletaRepository.existsByMoradorAndStatusNot(morador, "COLETADO");
+
+            if (temColetaEmAndamento) {
+                return ResponseEntity.status(400).body("Erro: Você já possui uma coleta em andamento. Aguarde a finalização para solicitar outra.");
+            }
+
+            coleta.setMorador(morador);
+            coleta.setStatus("PENDENTE"); 
+
+            Coleta coletaSalva = coletaRepository.save(coleta);
+            return ResponseEntity.ok(coletaSalva);
+        }
+
+        return ResponseEntity.status(404).body("Erro: Morador não encontrado!");
     }
 
-    // Suas rotas antigas mantidas
     @GetMapping("/all")
     public List<Coleta> getAllColetas() {
         return coletaRepository.findAll();
-    }
-
-    @GetMapping
-    public List<Coleta> getColetasByName(@RequestParam String nome) {
-        return coletaRepository.findAll().stream()
-                .filter(coleta -> coleta.getNome().equalsIgnoreCase(nome))
-                .toList();
     }
 }
