@@ -25,6 +25,9 @@ public class Usuario {
     private String bairro;
     private String cidade;
     private String estado;
+    private String complemento; // Opcional, para casos como "Casa", "Apartamento", etc.
+    private String endereco;
+
 
     // Getters e Setters
     public Long getId() { return id; }
@@ -53,4 +56,8 @@ public class Usuario {
     public void setCidade(String cidade) { this.cidade = cidade; }
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+    public String getComplemento() { return complemento; }
+    public void setComplemento(String complemento) { this.complemento = complemento; }
+    public String getEndereco() { return endereco; }
+    public void setEndereco(String endereco) { this.endereco = endereco; }
 }

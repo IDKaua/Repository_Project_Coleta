@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import './login.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Adicionamos o useNavigate aqui
 
 const Login = () => {
   const [identificador, setIdentificador] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // Novo state para o olho
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  
+  // Ferramenta do React para redirecionar de página
+  const navigate = useNavigate(); 
 
   const handleIdentificadorChange = (e) => {
     let value = e.target.value.replace(/\D/g, "");
@@ -24,14 +27,52 @@ const Login = () => {
     setIdentificador(value);
   };
 
-  const handleSubmit = (e) => {
+  // >>> A MÁGICA DA INTEGRAÇÃO ACONTECE AQUI <<<
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (password.length < 6) {
       setError('A senha deve ter pelo menos 6 caracteres.');
       return;
     }
-    setError('');
-    console.log('Login solicitado:', { identificador, password });
+    setError(''); // Limpa os erros antes de tentar
+
+    try {
+      // 1. O React bate na porta do Java
+      const resposta = await fetch("http://localhost:8080/api/usuarios/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          documento: identificador, // Pega o CPF/CNPJ da tela
+          senha: password           // Pega a senha da tela
+        })
+      });
+
+      // 2. O React lê a resposta do Java
+      if (resposta.ok) {
+        // Sucesso! Pega os dados do usuário que o Java devolveu
+        const dadosDoUsuario = await resposta.json();
+        
+        // Salva o usuário no navegador (para lembrarmos quem está logado nas outras telas)
+        localStorage.setItem('usuarioLogado', JSON.stringify(dadosDoUsuario));
+
+        alert(`Bem-vindo, ${dadosDoUsuario.nome}!`);
+
+        // Redireciona o usuário para a tela principal (Ajuste a rota "/home" para a rota correta do seu projeto)
+        navigate('/home'); 
+
+      } else {
+        // Erro 401 ou 404 (Senha errada ou usuário não existe)
+        const mensagemErro = await resposta.text();
+        setError(mensagemErro || 'CPF/CNPJ ou senha incorretos.');
+      }
+
+    } catch (err) {
+      // Se o Java estiver desligado, cai aqui
+      console.error("Erro no servidor:", err);
+      setError("Não foi possível conectar ao servidor. Verifique se ele está ligado.");
+    }
   };
 
   return (
@@ -59,9 +100,9 @@ const Login = () => {
 
           <div className="input-group">
             <label htmlFor="password">Senha</label>
-            <div className="password-wrapper"> {/* Wrapper para o posicionamento */}
+            <div className="password-wrapper">
               <input
-                type={showPassword ? "text" : "password"} // Alterna o tipo aqui
+                type={showPassword ? "text" : "password"}
                 id="password"
                 placeholder="Digite sua senha"
                 value={password}
@@ -79,7 +120,7 @@ const Login = () => {
                 <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
               </button>
             </div>
-            {error && <span className="error-message">{error}</span>}
+            {error && <span className="error-message" style={{ color: 'red', marginTop: '5px', display: 'block' }}>{error}</span>}
           </div>
 
           <button type="submit" className="btn-login">Entrar</button>

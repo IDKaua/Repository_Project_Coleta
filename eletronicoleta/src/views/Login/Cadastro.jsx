@@ -64,15 +64,61 @@ const Cadastro = () => {
     setFormData({ ...formData, [name]: formattedValue });
   };
 
-  const handleRegister = (e) => {
+  // --- A MÁGICA DA INTEGRAÇÃO DO CADASTRO ---
+  const handleRegister = async (e) => {
     e.preventDefault();
+    
     if (formData.senha !== formData.confirmarSenha) {
       alert("As senhas não coincidem!");
       return;
     }
-    console.log("Cadastro realizado:", { ...formData, tipo: isCooperativa ? 'Cooperativa' : 'Usuário' });
-    alert("Cadastro concluído com sucesso!");
-    navigate('/login');
+
+    if (formData.senha.length < 6) {
+      alert("A senha deve ter pelo menos 6 caracteres.");
+      return;
+    }
+
+    // 1. Montamos o "pacote" JSON que o Java espera
+    const dadosParaOJava = {
+      nome: formData.nome,
+      email: formData.email,
+      documento: formData.identificador, // Passamos o identificador como 'documento'
+      telefone: formData.telefone,
+      endereco: formData.endereco,
+      cep: formData.cep,
+      complemento: formData.complemento,
+      cidade: formData.cidade,
+      estado: formData.estado,
+      senha: formData.senha,
+      // A grande sacada: se isCooperativa for verdadeiro, manda "COOPERATIVA", senão, "MORADOR"
+      tipoUsuario: isCooperativa ? "COOPERATIVA" : "MORADOR" 
+    };
+
+    try {
+      // 2. O React bate na porta do Java e entrega os dados
+      const resposta = await fetch("http://localhost:8080/api/usuarios/cadastrar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(dadosParaOJava)
+      });
+
+      // 3. O React lê o que o Java respondeu
+      if (resposta.ok) {
+        alert("Cadastro concluído com sucesso! Bem-vindo(a) ao EcoTech.");
+        navigate('/login'); // Se deu certo, joga o usuário para a tela de Login
+      } else if (resposta.status === 500) {
+        // Aquele nosso erro clássico de quando o CPF/CNPJ já existe no banco
+        alert("Ops! Este documento ou e-mail já está cadastrado no sistema.");
+      } else {
+        alert("Erro ao realizar o cadastro. Tente novamente.");
+      }
+
+    } catch (erro) {
+      console.error("Erro de conexão:", erro);
+      alert("Não foi possível conectar ao servidor. Verifique se o backend está ligado.");
+    }
   };
 
   return (
