@@ -30,6 +30,7 @@ Este é o backend do sistema EcoTech, desenvolvido em Java com Spring Boot e con
 2. Certifique-se de que o arquivo `src/main/resources/application.properties` possui a URL correta de conexão com o banco de dados Neon (`spring.datasource.url=jdbc:postgresql://...`).
 3. Execute o comando para baixar as dependências e iniciar o servidor:
    ```bash
+      ./mvnw spring-boot:run
 
 ### Aqui estão exemplos de como enviar dados para a API no formato JSON.
 
