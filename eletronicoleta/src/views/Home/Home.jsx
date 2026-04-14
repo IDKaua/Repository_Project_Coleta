@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Importado para navegação
 import ServiceCard from '../../components/ServiceCard/ServiceCard';
 import './Home.css';
 
 const Home = () => {
   const [isVisible, setIsVisible] = useState(false);
   const cardsRef = useRef(null);
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -14,7 +16,7 @@ const Home = () => {
       { threshold: 0.15 }
     );
 
-    if (cardsRef.current) observer.observe(cardsRef.current);
+   if (cardsRef.current) observer.observe(cardsRef.current);
     return () => observer.disconnect();
   }, []);
 
@@ -41,20 +43,25 @@ const Home = () => {
           className={`cards-section ${isVisible ? 'fade-in-up' : 'hidden-cards'}`}
         >
           <div className="cards-grid">
+            {/* Botão provisório removido, mantendo apenas o card funcional */}
             <ServiceCard
               tipo="USUÁRIO"
               icone="fa-house-user"
               desc="Solicite coletas agora."
+              onClick={() => navigate('/solicitar-coleta')} 
             />
+
             <ServiceCard
               tipo="COOPERATIVA"
               icone="fa-building"
               desc="Gerencie sua equipe."
+              
             />
             <ServiceCard
               tipo="COLETOR"
               icone="fa-truck-fast"
               desc="Veja suas rotas."
+              onClick={() => navigate('/conta-cooperativa')}
             />
           </div>
         </section>

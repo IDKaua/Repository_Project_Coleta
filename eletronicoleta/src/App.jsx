@@ -5,6 +5,11 @@ import SolicitarColeta from './views/SolicitarColeta/SolicitarColeta';
 import Home from './views/Home/Home';
 import Login from './views/Login/Login'; 
 import Cadastro from './views/Login/Cadastro'; 
+import Rastreio from './views/Rastreio/Rastreio'; // <--- 1. ADICIONE ESTE IMPORT
+import PainelCooperativa from './views/Painel-Cooperativa/PainelCooperativa'
+import ContaCooperativa from './views/MinhaConta/ContaCooperativa';
+import MapaCooperativa from './views/Painel-Cooperativa/MapaCooperativa'
+
 import './App.css';
 
 function App() {
@@ -16,6 +21,11 @@ function App() {
         <Route path="/solicitar-coleta" element={<SolicitarColeta />} />
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Cadastro />} />
+        <Route path="/rastreio" element={<Rastreio />} /> {/* <--- 2. ADICIONE ESTA ROTA */}
+        <Route path="/painel-cooperativa" element={<PainelCooperativa />} />
+        <Route path="/conta-cooperativa" element={<ContaCooperativa />} />
+        <Route path="/mapa-cooperativa" element={<MapaCooperativa />} />
+        
       </Routes>
     </Router>
   );

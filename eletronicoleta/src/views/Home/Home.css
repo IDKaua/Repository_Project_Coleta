@@ -188,3 +188,47 @@ header {
     transform: rotate(360deg);
   }
 }
+
+/* =========================================
+   BOTÃO TEMPORÁRIO DE DESENVOLVIMENTO (DEV)
+   ========================================= */
+
+/* O wrapper herda o background e shadow do .cards-grid > * */
+.user-card-wrapper {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 25px; /* Espaço no fundo para o botão não colar na borda */
+}
+
+/* Garante que o ServiceCard empurre o botão para baixo se for preciso */
+.user-card-wrapper > div:first-child {
+  flex: 1;
+}
+
+.btn-temp-rastreio {
+  margin: 0 25px; /* Alinha com o conteúdo de dentro do card */
+  padding: 12px;
+  background-color: #3da644;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(61, 166, 68, 0.2);
+}
+
+.btn-temp-rastreio:hover {
+  background-color: #2f7d38;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(61, 166, 68, 0.3);
+}
+
+.btn-temp-rastreio i {
+  font-size: 16px;
+}

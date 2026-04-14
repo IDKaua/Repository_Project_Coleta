@@ -9,8 +9,10 @@ const ServiceCard = ({ tipo, icone, desc }) => {
     if (tipo === "USUÁRIO") {
       navigate('/solicitar-coleta');
     } else {
-      // Lógica para os outros cards
-    }
+      if (tipo === "COOPERATIVA") {
+        navigate('/conta-cooperativa')
+      }
+    } 
   };
 
   return (

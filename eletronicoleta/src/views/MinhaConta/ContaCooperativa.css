@@ -1,0 +1,203 @@
+:root {
+  --primary-green: #2a5b45; /* Verde escuro da navbar */
+  --sidebar-green: #3d8c66; /* Verde da lateral */
+  --bg-main: #66bb6a;       /* Cor de fundo que você solicitou */
+  --text-dark: #1b5e20;
+  --text-muted: #666;
+}
+
+/* Reset básico para garantir que não sobrem espaços pretos */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-main); /* Define a cor em toda a página */
+  font-family: sans-serif;
+}
+
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--bg-main);
+}
+
+/* Navbar Superior */
+.top-navbar {
+  background-color: var(--primary-green);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 40px;
+  color: white;
+  height: 60px; /* Altura fixa para ajudar no cálculo do layout */
+}
+
+.nav-logo {
+  font-weight: bold;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.login-btn {
+  background: none;
+  border: 1px solid white;
+  color: white;
+  padding: 5px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+/* Layout Principal */
+.container {
+  display: flex;
+  flex: 1; /* Faz o container ocupar o espaço restante */
+  background-color: var(--bg-main);
+}
+
+.sidebar {
+  width: 250px;
+  background-color: var(--sidebar-green);
+  padding-top: 20px;
+  min-height: calc(100vh - 60px); /* Garante que a barra vá até o final */
+}
+
+.nav-item {
+  width: 90%;
+  margin: 5px auto;
+  display: block;
+  background: transparent;
+  border: none;
+  color: white;
+  text-align: left;
+  padding: 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.nav-item.active {
+  background-color: var(--bg-main); /* Cor de destaque ativa */
+}
+
+.main-content {
+  flex: 1;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centraliza o card horizontalmente */
+}
+
+.title-page {
+  color: white; /* Alterado para branco para melhor contraste no fundo verde */
+  text-align: center;
+  font-size: 28px;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+/* O CARD */
+.main-card {
+  background: white;
+  border-radius: 25px;
+  width: 100%;
+  max-width: 700px;
+  padding: 40px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  margin-bottom: 40px;
+}
+
+.profile-avatar {
+  background: var(--sidebar-green);
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 22px;
+}
+
+/* Ajuste das cores de texto dentro do card branco */
+.coop-name {
+  color: #333; /* Cor escura para ler no branco */
+  margin: 15px 0 5px;
+  text-align: center;
+}
+
+.coop-email {
+  color: #666;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.section-title {
+  color: var(--primary-green);
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.input-wrapper {
+  background: #f1f8f1;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  margin-bottom: 15px;
+}
+
+.input-wrapper input {
+  border: none;
+  background: transparent;
+  color: #1b5e20; /* Verde escuro para leitura */
+  width: 90%;
+  font-size: 16px;
+}
+
+.btn-save {
+  width: 100%;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+  background: #f5f5f5;
+  color: #ccc;
+  cursor: not-allowed;
+  margin-top: 10px;
+}
+
+.btn-secondary {
+  width: 100%;
+  padding: 15px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  color: #888;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid #eee;
+  margin: 20px 0;
+}
