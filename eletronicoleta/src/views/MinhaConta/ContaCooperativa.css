@@ -2,15 +2,23 @@
   --white: #ffffff;
   --light-gray: #f8f9fa;
   --sidebar-text: #6c757d;
-  --active-green: #468e49; /* Verde da Foto 1 */
-  --bg-main: #66bb6a;      /* Verde do fundo da Foto 2 */
-  --text-main: #333;
+  --active-green: #468e49;
+  --bg-main: #dcf2e3; /* NOVA COR SOLICITADA */
+  --text-main: #2e5d32;
 }
 
 .page-wrapper {
   display: flex;
   min-height: 100vh;
   background-color: var(--bg-main);
+}
+
+.main-content {
+  flex: 1;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .container {
@@ -22,7 +30,7 @@
 .sidebar {
   width: 280px;
   background-color: var(--white); /* Fundo branco conforme imagem 1 */
-  border-right: 1px solid #eee;
+  border-right: 1px solid #ddd;
   display: flex;
   flex-direction: column;
 }
@@ -72,7 +80,6 @@
   transition: all 0.3s;
 }
 
-/* Item Ativo conforme Foto 1 */
 .nav-item.active {
   background-color: var(--active-green);
   color: white;
@@ -86,17 +93,25 @@
 /* Área de Conteúdo */
 .main-content {
   flex: 1;
-  padding: 40px;
+  padding: 70px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 .title-page {
-  color: white;
+  color: var(--text-main);
   margin-bottom: 30px;
+  font-size: 40px;
   font-weight: bold;
-  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.section-title-resumido {
+  color: #2e5d32;
+  font-size: 20px;
+  text-align: center;
+  margin-bottom: 30px;
 }
 
 .main-card {
@@ -108,4 +123,47 @@
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
-/* ... Restante dos estilos do Card permanecem os mesmos ... */
+.dado-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin-bottom: 12px;
+  background-color: white;
+}
+
+.dado-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.dado-icon {
+  font-size: 20px;
+  color: #666;
+}
+
+.dado-text {
+  color: #444;
+  font-size: 15px;
+}
+
+.edit-small-btn {
+  background: #f5f5f5;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  color: #888;
+}
+
+.btn-add-dados {
+  background-color: transparent;
+  border: 1px solid #eee;
+  color: #eee; /* Efeito desabilitado da imagem */
+  padding: 12px 30px;
+  border-radius: 10px;
+  cursor: not-allowed;
+}

@@ -18,14 +18,14 @@ const ContaCooperativa = () => {
             <hr className="divider" />
             <div className="form-section">
               <h3 className="section-title">Dados Cadastrais</h3>
-              <div className="input-group" style={{ marginBottom: '20px' }}>
+              <div className="input-group">
                 <label className="label-input">Telefone:</label>
                 <div className="input-wrapper">
                   <input type="text" defaultValue="(11) 91234-5678" />
                   <span className="edit-icon">✎</span>
                 </div>
               </div>
-              <div className="input-group" style={{ marginBottom: '20px' }}>
+              <div className="input-group">
                 <label className="label-input">CNPJ:</label>
                 <div className="input-wrapper">
                   <input type="text" defaultValue="12.345.678/0001-90" />
@@ -37,49 +37,66 @@ const ContaCooperativa = () => {
             </div>
           </div>
         );
-      case 'painel':
-        return <div className="card-content"><h2>Conteúdo do Painel</h2></div>;
+
+      case 'dados':
+        return (
+          <div className="card-content">
+            <h2 className="section-title-resumido">DADOS OPERACIONAIS RESUMIDOS</h2>
+            <div className="dados-list">
+              {[
+                { label: 'Responsável', value: 'Maria Santos', icon: '👤' },
+                { label: 'E-mail', value: 'maria.santos@reciclavale.coop', icon: '✉' },
+                { label: 'Telefone', value: '(11) 91234-5678', icon: '📞' },
+                { label: 'CNPJ', value: '12.345.678/0001-90', icon: '📄' },
+                { label: 'Registro Municipal', value: '', icon: '📋' },
+                { label: 'Data de Fundação', value: '', icon: '📅' },
+                { label: 'Licença Ambiental', value: '', icon: '⭐' },
+                { label: 'Capacidade Mensal (kg)', value: '', icon: '🚛' },
+                { label: 'Tipos de Material Aceitos', value: '', icon: '🗺️' },
+              ].map((item, index) => (
+                <div key={index} className="dado-row">
+                  <div className="dado-info">
+                    <span className="dado-icon">{item.icon}</span>
+                    <span className="dado-text">
+                      <strong>{item.label}:</strong> {item.value}
+                    </span>
+                  </div>
+                  <button className="edit-small-btn">✎</button>
+                </div>
+              ))}
+              <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                <button className="btn-add-dados">Adicionar Novos Dados</button>
+              </div>
+            </div>
+          </div>
+        );
+
       default:
-        return null;
+        return <div className="card-content"><h2>Em breve</h2></div>;
     }
   };
 
   return (
     <div className="page-wrapper">
       <div className="container">
-       <aside className="sidebar">
-  <div className="sidebar-logo">
-    <span className="logo-icon-green">♻</span> 
-    <span className="logo-text">EcoTec</span>
-  </div>
-
-         <div className="sidebar-content">
-    <p className="sidebar-category">OPERAÇÕES</p>
-    
-    <button
-      className={`nav-item ${activeTab === 'perfil' ? 'active' : ''}`}
-      onClick={() => setActiveTab('perfil')}
-    >
-      <span className="icon">👤</span> Meu Perfil
-    </button>
-
-            {/* Nova Aba solicitada */}
-            {/* Aba Mapa Operacional alterada para Dados Operacionais */}
-    <button
-      className={`nav-item ${activeTab === 'coletas' ? 'active' : ''}`}
-      onClick={() => setActiveTab('coletas')}
-    >
-      <span className="icon">♻</span> Coletas
-    </button>
-
-    <button
-      className={`nav-item ${activeTab === 'dados' ? 'active' : ''}`}
-      onClick={() => setActiveTab('dados')}
-    >
-      <span className="icon">📊</span> Dados Operacionais
-    </button>
-  </div>
-</aside>
+        <aside className="sidebar">
+          <div className="sidebar-logo">
+            <span className="logo-icon-green">♻</span> 
+            <span className="logo-text">EcoTec</span>
+          </div>
+          <div className="sidebar-content">
+            <p className="sidebar-category">OPERAÇÕES</p>
+            <button className={`nav-item ${activeTab === 'perfil' ? 'active' : ''}`} onClick={() => setActiveTab('perfil')}>
+              <span className="icon">👤</span> Meu Perfil
+            </button>
+            <button className={`nav-item ${activeTab === 'coletas' ? 'active' : ''}`} onClick={() => setActiveTab('coletas')}>
+              <span className="icon">♻</span> Coletas
+            </button>
+            <button className={`nav-item ${activeTab === 'dados' ? 'active' : ''}`} onClick={() => setActiveTab('dados')}>
+              <span className="icon">📊</span> Dados Operacionais
+            </button>
+          </div>
+        </aside>
 
         <main className="main-content">
           <h1 className="title-page">PAINEL DA COOPERATIVA</h1>
