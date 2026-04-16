@@ -1,15 +1,13 @@
 import React from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+
 
 const menuItems = [
-  { label: "Coletas",          path: "/painel-cooperativa", icon: "fas fa-recycle"       },
-  { label: "Mapa Operacional", path: "/mapa-cooperativa",   icon: "fas fa-map-marked-alt" },
+  { label: "Coletas",          view: "coletas", icon: "fas fa-recycle"       },
+  { label: "Mapa Operacional", view: "mapa",   icon: "fas fa-map-marked-alt" },
 ];
 
-const Sidebar = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
+const Sidebar = ({ activeView, setActiveView }) => {
+  
   return (
     <aside className="painel-sidebar">
       <div className="sidebar-logo">
@@ -22,9 +20,9 @@ const Sidebar = () => {
       <nav className="sidebar-nav">
         {menuItems.map((item) => (
           <button
-            key={item.path}
-            className={`sidebar-item ${location.pathname === item.path ? "active" : ""}`}
-            onClick={() => navigate(item.path)}
+            key={item.view}
+            className={`sidebar-item ${activeView === item.view ? "active" : ""}`}
+            onClick={() => setActiveView(item.view)}
           >
             <i className={item.icon}></i>
             <span>{item.label}</span>
