@@ -164,23 +164,26 @@ export default function MapaOperacional({ embedded = false }) {
             <p className="mapa-subtitulo">Visão Geral Geográfica de Ativos e Operações</p>
           </div>
 
-          {/* Filtros inline quando embedded */}
-          {embedded && (
-            <div className="mapa-filtros-embedded">
-              <label className="sidebar-check">
-                <input type="checkbox" checked={showColetas} onChange={e => setShowColetas(e.target.checked)} />
-                Exibir Coletas
-              </label>
-              <label className="sidebar-check">
-                <input type="checkbox" checked={showConteineres} onChange={e => setShowConteineres(e.target.checked)} />
-                Exibir Contêineres
-              </label>
-            </div>
-          )}
+          
 
           <div className="mapa-content-row">
             {/* Mapa */}
             <div className="mapa-card mapa-map-card">
+              <div className="mapa-card mapa-legenda-card">
+            
+            <div className="legenda-row">
+              <label className="legenda-check-item">
+                <input type="checkbox" checked={showColetas} onChange={e => setShowColetas(e.target.checked)} />
+                <span className="legenda-icon-sm truck"><IconTruck /></span>
+                Exibir Coletas
+              </label>
+              <label className="legenda-check-item">
+                <input type="checkbox" checked={showConteineres} onChange={e => setShowConteineres(e.target.checked)} />
+                <span className="legenda-icon-sm bin"><IconBin /></span>
+                Exibir Contêineres
+              </label>
+            </div>
+          </div>
               <div className="mapa-map-area">
                 <svg className="world-svg" viewBox="0 0 1000 500"
                   xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
@@ -254,21 +257,7 @@ export default function MapaOperacional({ embedded = false }) {
           </div>
 
           {/* Legenda inferior */}
-          <div className="mapa-card mapa-legenda-card">
-            <h3 className="legenda-titulo">LEGENDA</h3>
-            <div className="legenda-row">
-              <label className="legenda-check-item">
-                <input type="checkbox" checked={showColetas} onChange={e => setShowColetas(e.target.checked)} />
-                <span className="legenda-icon-sm truck"><IconTruck /></span>
-                Exibir Coletas
-              </label>
-              <label className="legenda-check-item">
-                <input type="checkbox" checked={showConteineres} onChange={e => setShowConteineres(e.target.checked)} />
-                <span className="legenda-icon-sm bin"><IconBin /></span>
-                Exibir Contêineres
-              </label>
-            </div>
-          </div>
+          
         </main>
       </div>
 

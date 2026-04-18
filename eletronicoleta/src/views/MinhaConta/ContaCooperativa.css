@@ -72,7 +72,8 @@
   color: var(--sidebar-text);
   text-align: left;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 400;
+  letter-spacing: 0.5px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -88,6 +89,14 @@
 
 .nav-item .icon {
   font-size: 18px;
+}
+
+.nav-item .formal-icon {
+  filter: grayscale(100%) brightness(0.8); /* Torna o ícone sóbrio */
+}
+
+.nav-item.active .formal-icon {
+  filter: brightness(0) invert(1); /* Fica branco quando ativo */
 }
 
 /* Área de Conteúdo */
@@ -150,20 +159,279 @@
   font-size: 15px;
 }
 
-.edit-small-btn {
-  background: #f5f5f5;
-  border: none;
-  border-radius: 6px;
-  padding: 5px 10px;
-  cursor: pointer;
-  color: #888;
+.formal-icon {
+  font-size: 18px;
+  min-width: 24px;
 }
 
-.btn-add-dados {
-  background-color: transparent;
-  border: 1px solid #eee;
-  color: #eee; /* Efeito desabilitado da imagem */
-  padding: 12px 30px;
+.btn-save-new:hover {
+  background-color: #38703a;
+}
+
+.btn-secondary-new:hover {
+  background-color: #468e49;
+  color: white;
+}
+
+.coletas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.section-title-coletas {
+  color: #2e5d32;
+  font-size: 24px;
+  margin: 0;
+}
+
+.coletas-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.coletas-table td:first-child {
+  color: #4d4e4d; /* Exemplo: Verde escuro institucional */
+  font-weight: 500; /* Deixa um pouco mais evidente */
+}
+
+/* Cor para os ITENS/PESO (Segunda coluna) */
+.coletas-table td:nth-child(2) {
+  color: #696868; /* Exemplo: Cinza escuro formal */
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: #f1f3f4;
+  padding: 8px 15px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.search-bar input {
+  background: transparent;
+  border: none;
+  outline: none;
+  margin-left: 8px;
+  color: #666;
+}
+
+.filter-button {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.link-button-alt {
+  background: none;
+  border: none;
+  color: #666;
+  text-decoration: underline;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.coletas-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.coletas-table th, 
+.coletas-table td {
+  padding: 15px;
+  text-align: center; /* Garante que títulos e dados alinhem à esquerda por padrão */
+  vertical-align: middle;
+}
+
+.coletas-table th:last-child,
+.coletas-table td:last-child {
+  text-align: center;
+}
+
+.coletas-table th:nth-child(3) {
+  text-align: left;
+  padding-left: 40px; /* Ajuste este valor se precisar mover mais para a esquerda */
+}
+
+
+/* Estilos de Status */
+.status-cell {
+  text-align: left;
+  padding-left: 15px;
+}
+
+.status-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-start;
+  /* Garante que o container flex não tenha margens internas extras */
+  margin: 0;
+  padding: 0;
+}
+
+.status-wrapper svg {
+  min-width: 24px; 
+  display: flex;
+  justify-content: center;
+}
+
+.status-wrapper.success { color: #2e5d32; } /* Verde */
+.status-wrapper.pending { color: #1a73e8; } /* Azul */
+.status-wrapper.error { color: #d93025; }   /* Vermelho */
+
+/* Garante que o botão em si seja um flex container para o ícone */
+.download-btn-formal {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  color: #666;
+  
+  /* Centralização interna do ícone */
+  display: inline-flex; 
+  align-items: center;
+  justify-content: center;
+  
+  transition: all 0.2s;
+  /* Remove margens que possam deslocar o botão */
+  margin: 0 auto; 
+}
+
+.download-btn-formal:hover {
+  background: #f5f5f5;
+  color: #333;
+  border-color: #ccc;
+}
+
+.icon-tray {
+  font-size: 18px;
+  filter: grayscale(100%); /* Remove o colorido do emoji para parecer um ícone de interface */
+  opacity: 0.7;
+}
+
+.ver-mais-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.btn-ver-mais {
+  background: white;
+  border: 1px solid #f0f0f0;
+  color: #e0e0e0;
+  padding: 10px 40px;
   border-radius: 10px;
   cursor: not-allowed;
+}
+
+/* Ícone de Lápis dentro da caixa ou alinhado */
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.edit-pencil-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #adb5bd;
+  cursor: pointer;
+  font-size: 16px;
+  transition: color 0.2s;
+}
+
+.edit-pencil-icon:hover {
+  color: #468e49;
+}
+
+.edit-small-btn {
+  background: none;        
+  border: none;          
+  padding: 0;             
+  margin: 0;              
+  color: #404346;          /* Cor do lápis (cinza formal) */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  outline: none;          
+}
+
+.edit-small-btn:hover {
+  color: #468e49;          
+  background: none;       
+}
+
+.input-wrapper input {
+  padding-right: 40px; /* Espaço para o lápis */
+}
+
+.profile-avatar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.profile-avatar-large {
+  width: 100px; /* Aumentado */
+  height: 100px;
+  background-color: #f0f0f0;
+  border-radius: 50%; /* Círculo perfeito */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  border: 3px solid #eee;
+  margin-bottom: 10px;
+}
+
+.profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.profile-info-text {
+  text-align: center;
+}
+
+.coop-name-institutional {
+  color: #2e5d32;
+  font-size: 26px;
+  margin: 0;
+}
+
+.coop-email-sub {
+  color: #666;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+/* Título em Preto */
+.section-title-black {
+  color: #000000;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.coop-name-institutional {
+  color: #000000; /* Verde do título */
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 5px;
 }
