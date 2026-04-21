@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PainelCooperativa.css";
-import MapaOperacional from "./MapaCooperativa";
+import "./Paineltabelas.css"
+import MapaOperacional from "../Mapa-cooperativa/MapaCooperativa";
 
 import Sidebar from "./sideBar";
 import FilaColetas from "./Filacoleta"

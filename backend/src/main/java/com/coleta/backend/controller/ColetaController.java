@@ -32,11 +32,11 @@ public class ColetaController {
             Usuario morador = usuarioOpt.get();
 
             // A trava de segurança!
-            boolean temColetaEmAndamento = coletaRepository.existsByMoradorAndStatusNot(morador, "COLETADO");
+           // boolean temColetaEmAndamento = coletaRepository.existsByMoradorAndStatusNot(morador, "COLETADO");
 
-            if (temColetaEmAndamento) {
-                return ResponseEntity.status(400).body("Erro: Você já possui uma coleta em andamento. Aguarde a finalização para solicitar outra.");
-            }
+          //  if (temColetaEmAndamento) {
+          //      return ResponseEntity.status(400).body("Erro: Você já possui uma coleta em andamento. Aguarde a finalização para solicitar outra.");
+          //  }
 
             coleta.setMorador(morador);
             coleta.setStatus("PENDENTE"); 

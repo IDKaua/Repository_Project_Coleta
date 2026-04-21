@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "./Paineltriagem.css";
 
 const MATERIAIS = [
   { label: "Cobre",              key: "cobre"             },

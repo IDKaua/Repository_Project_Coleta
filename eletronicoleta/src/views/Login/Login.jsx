@@ -60,7 +60,12 @@ const Login = () => {
         alert(`Bem-vindo, ${dadosDoUsuario.nome}!`);
 
         // Redireciona o usuário para a tela principal (Ajuste a rota "/home" para a rota correta do seu projeto)
-        navigate('/painel-cooperativa'); 
+        if (dadosDoUsuario.tipoUsuario === "COOPERATIVA") {
+               navigate('/painel-cooperativa');
+        } else {
+               navigate('/minha-conta');
+        }
+      
 
       } else {
         // Erro 401 ou 404 (Senha errada ou usuário não existe)

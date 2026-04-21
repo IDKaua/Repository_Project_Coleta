@@ -28,14 +28,6 @@ const ContaCooperativa = () => {
 
               <h3 className="section-title-black align-left">Dados Cadastrais:</h3>
               
-              <div className="input-group">
-                <label className="label-input">Telefone:</label>
-                <div className="input-wrapper">
-                  <input type="text" defaultValue="(11) 91234-5678" />
-                  <span className="edit-pencil-icon">✎</span>
-                </div>
-              </div>
-              
               {/* Campo Telefone */}
               <div className="input-group">
                 <label className="label-input">Telefone:</label>
@@ -63,7 +55,6 @@ const ContaCooperativa = () => {
           </div>
         );
 
-case 'coletas':
 case 'coletas':
         const coletasData = [
           { id: 1, data: '03/07/2023', peso: '500kg', status: 'Processado', type: 'success' },
@@ -114,8 +105,6 @@ case 'coletas':
           { label: 'E-mail', value: 'maria.santos@reciclavale.coop', icon: <Mail size={20} /> },
           { label: 'Telefone', value: '(11) 91234-5678', icon: <Phone size={20} /> },
           { label: 'CNPJ', value: '12.345.678/0001-90', icon: <FileText size={20} /> },
-          { label: 'Registro Municipal', value: '---', icon: <Building2 size={20} /> },
-          { label: 'Data de Fundação', value: '---', icon: <Calendar size={20} /> },
         ];
 
         return (

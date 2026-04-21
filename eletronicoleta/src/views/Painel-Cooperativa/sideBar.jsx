@@ -12,7 +12,7 @@ const Sidebar = ({ activeView, setActiveView }) => {
     <aside className="painel-sidebar">
       <div className="sidebar-logo">
         <i className="fas fa-recycle sidebar-leaf"></i>
-        <span className="sidebar-brand">EcoTec</span>
+        <span className="sidebar-brand">EcoTech</span>
       </div>
 
       <p className="sidebar-section-label">OPERAÇÕES</p>
