@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Importado para navegação
 import ServiceCard from '../../components/ServiceCard/ServiceCard';
+import Campanha from './Campanha';
 import './Home.css';
 
 const Home = () => {
@@ -65,6 +66,8 @@ const Home = () => {
             />
           </div>
         </section>
+        <Campanha />
+        
       </main>
     </div>
   );

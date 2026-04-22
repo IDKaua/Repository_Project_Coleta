@@ -1,0 +1,107 @@
+/* ══════════════════════════════════════
+   LISTA DE ENDEREÇOS
+══════════════════════════════════════ */
+.enderecos-lista { display: flex; flex-direction: column; }
+
+.endereco-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+.endereco-item:last-child { border-bottom: none; }
+
+.endereco-tipo { font-size: 15px; font-weight: 700; color: #1a1d1d; margin: 0 0 6px; text-align: left; }
+
+.endereco-info p {
+  font-size: 13px;
+  color: #4b5563;
+  margin: 3px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.endereco-info p i { color: #9ca3af; width: 14px; }
+
+.endereco-acoes { display: flex; gap: 8px; flex-shrink: 0; margin-left: 16px; }
+
+.btn-acao-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #4b5563;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+.btn-acao-icon:hover { background: #f0fdf4; color: #438e44; border-color: #438e44; }
+.btn-acao-icon.danger:hover { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+
+/* ══════════════════════════════════════
+   FORMULÁRIO DE ENDEREÇO
+══════════════════════════════════════ */
+.form-endereco {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 12px 0;
+}
+
+.form-end-titulo {
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+  margin: 0 0 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.form-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.flex-1 { flex: 1; }
+.flex-2 { flex: 2; }
+.flex-3 { flex: 3; }
+
+.form-end-acoes {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.btn-cancelar-end {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 9px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-cancelar-end:hover { background: #e5e7eb; }
+
+.btn-salvar-end {
+  background: #438e44;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-salvar-end:hover { background: #3d8c3d; }

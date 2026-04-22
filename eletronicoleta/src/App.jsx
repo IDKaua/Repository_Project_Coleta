@@ -11,6 +11,7 @@ import ContaCooperativa from './views/MinhaConta/ContaCooperativa';
 import MapaCooperativa from './views/Mapa-cooperativa/MapaCooperativa';
 import MinhaConta from './views/MinhaConta/MinhaConta';
 
+
 import './App.css';
 
 function App() {
@@ -27,6 +28,8 @@ function App() {
         <Route path="/conta-cooperativa" element={<ContaCooperativa />} />
         <Route path="/mapa-cooperativa" element={<MapaCooperativa />} />
         <Route path="/minha-conta" element={<MinhaConta />} />
+        
+        
         
       </Routes>
     </Router>
