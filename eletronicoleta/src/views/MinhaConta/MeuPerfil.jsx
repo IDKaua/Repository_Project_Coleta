@@ -161,7 +161,7 @@ const MeuPerfil = () => {
         </div>
         <input type="file" accept="image/*" ref={fileInputRef} style={{ display: "none" }} onChange={handleFotoChange} />
         <button className="btn-alterar-foto" onClick={() => fileInputRef.current.click()}>
-          Alterar Foto
+           <i className="fas fa-camera"></i> Alterar Foto
         </button>
         <h3 className="avatar-nome">{form.nome || usuarioLogado.nome}</h3>
         <p className="avatar-email">{form.email || usuarioLogado.email}</p>
