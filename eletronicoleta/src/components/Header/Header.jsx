@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link} from 'react-router-dom';
+import { HashLink } from 'react-router-hash-link';
 import './Header.css';
 
 const Header = () => {
@@ -18,11 +19,11 @@ const Header = () => {
         <div className="header-actions">
           <nav className="header-nav">
             <ul>
-              <li><Link to="/">Início</Link></li>
+              <li><HashLink smooth to="/">Início</HashLink></li>
               <li><Link to="#">Serviços</Link></li>
               <li><Link to="#">Parceiros</Link></li>
               <li><Link to="#">Funçoes</Link></li>
-              <li><Link to="/campanha">Campanha</Link></li>
+              <li><HashLink smooth to="/#campanha">Campanha</HashLink></li>
               <li><Link to="/sobre">Sobre Nós</Link></li>
             </ul>
           </nav>

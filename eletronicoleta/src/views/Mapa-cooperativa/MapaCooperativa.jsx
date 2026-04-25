@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./MapaCooperativa.css";
+import "./MapaComponentes.css"
 import { IconRecycle } from "./Mapaicones";
 import MapaMundi from "./Mapa";
 import MapaDetalhes from "./Mapadetalhes";

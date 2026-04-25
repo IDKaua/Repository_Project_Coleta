@@ -123,3 +123,16 @@
   font-size: 0.95rem;
   font-weight: 500;
 }
+/* No seu arquivo de CSS */
+html {
+  scroll-behavior: smooth; /* Garante que todo scroll interno seja suave */
+}
+
+/* Ajuste o valor (80px) para a altura aproximada do seu Header */
+#campanha {
+  scroll-margin-top: 80px; 
+}
+
+#home {
+  scroll-margin-top: 100px;
+}

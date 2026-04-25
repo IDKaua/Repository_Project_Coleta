@@ -1,37 +1,50 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Importado para navegação
+import { useNavigate } from 'react-router-dom';
 import ServiceCard from '../../components/ServiceCard/ServiceCard';
 import Campanha from './Campanha';
+import Parcerias from './Parcerias';   // ← novo import
 import './Home.css';
 
 const Home = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const [campanhasVisible, setCampanhasVisible] = useState(false);
   const cardsRef = useRef(null);
-  const navigate = useNavigate(); 
+  const campanhasRef = useRef(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { threshold: 0.15 }
+    );
+    if (cardsRef.current) observer.observe(cardsRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setIsVisible(entry.isIntersecting);
+        if (entry.isIntersecting) {
+          setCampanhasVisible(true);
+          observer.disconnect();
+        }
       },
-      { threshold: 0.15 }
+      { threshold: 0.2 }
     );
-
-   if (cardsRef.current) observer.observe(cardsRef.current);
+    if (campanhasRef.current) observer.observe(campanhasRef.current);
     return () => observer.disconnect();
   }, []);
 
   return (
     <div className="main-wrapper">
       <main className="content-container">
-        <section className="hero-section">
+        <section id="home" className="hero-section">
           <div className="hero-text">
             <i className="fas fa-recycle main-icon"></i>
             <h1>
-              IMAGEM <span className="green-text">RECICLA</span>
+              ECO <span className="green-text">TECH</span>
             </h1>
             <p>Sua plataforma de gestão de resíduos eletrônicos.</p>
-
             <div className="scroll-indicator">
               <span>Role para explorar</span>
               <i className="fas fa-chevron-down"></i>
@@ -44,19 +57,16 @@ const Home = () => {
           className={`cards-section ${isVisible ? 'fade-in-up' : 'hidden-cards'}`}
         >
           <div className="cards-grid">
-            {/* Botão provisório removido, mantendo apenas o card funcional */}
             <ServiceCard
               tipo="USUÁRIO"
               icone="fa-house-user"
               desc="Solicite coletas agora."
-              onClick={() => navigate('/solicitar-coleta')} 
+              onClick={() => navigate('/solicitar-coleta')}
             />
-
             <ServiceCard
               tipo="COOPERATIVA"
               icone="fa-building"
               desc="Gerencie sua equipe."
-              
             />
             <ServiceCard
               tipo="COLETOR"
@@ -66,8 +76,16 @@ const Home = () => {
             />
           </div>
         </section>
-        <Campanha />
-        
+
+        {/* Parcerias aparece ANTES das campanhas */}
+        <Parcerias />
+
+        <section id="campanha" ref={campanhasRef} className="campanhas-section">
+          <h2 className={`campanhas-title ${campanhasVisible ? 'title-visible' : ''}`}>
+            CAMPANHAS
+          </h2>
+          <Campanha />
+        </section>
       </main>
     </div>
   );

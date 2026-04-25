@@ -1,11 +1,17 @@
+/* Ajuste global para garantir que o scroll pare abaixo do Header fixo */
+html {
+  scroll-behavior: smooth;
+  /* Esta linha é a mais importante para o scroll não cortar nada */
+  scroll-padding-top: 85px; 
+}
+
 .main-wrapper {
   min-height: 100vh;
   width: 100%;
-  /* Altere de overflow-x: hidden para isto: */
   overflow: hidden; 
   position: relative;
-  /* Garante que o padding não some ao tamanho total de 100vh */
   box-sizing: border-box; 
+  padding-top: 80px;
   background: 
     radial-gradient(circle at top left, rgba(15, 61, 46, 0.08), transparent 25%),
     linear-gradient(to bottom, #eef0ef 0%, #f6f7f7 45%, #f1f3f2 100%);
@@ -46,10 +52,22 @@
   align-items: center;
   text-align: center;
   padding: 120px 20px 60px;
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  /* Adicione estas linhas */
+  background-image: url("../../assets/imagemrecicladois.jpeg"); /* Caminho da imagem */
+  background-size: cover;          /* Faz a imagem cobrir todo o espaço */
+  background-position: center;     /* Centraliza a imagem */
+  background-repeat: no-repeat;    /* Não repete a imagem */
 }
 
 .hero-text {
   max-width: 900px;
+  margin-top: -120px;
 }
 
 .main-icon {
@@ -59,12 +77,12 @@
 }
 
 .hero-text h1 {
-  font-size: clamp(3rem, 8vw, 5.5rem);
+  font-size: clamp(2rem, 8vw, 3.5rem);
   font-weight: 900;
   color: #3f4b4b;
   letter-spacing: -3px;
   line-height: 1;
-  margin-bottom: 22px;
+  margin-bottom: 15px;
 }
 
 .green-text {
@@ -73,7 +91,7 @@
 
 .hero-text p {
   font-size: clamp(1.1rem, 2vw, 1.7rem);
-  color: #5f6666;
+  color: #2f7d38;
   margin-bottom: 34px;
 }
 
@@ -233,3 +251,46 @@ header {
   font-size: 16px;
 }
 
+/* SEÇÃO CAMPANHAS */
+.campanhas-section {
+  position: relative;
+  z-index: 10;
+  padding: 0 0 80px;
+}
+
+.campanhas-title {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 900;
+  color: #3f4b4b;
+  letter-spacing: -1px;
+  margin-bottom: 16px;
+  position: relative;
+  display: inline-block;
+
+  opacity: 0;
+  transform: translateY(70px) scale(0.85); /* mais deslocamento + menor */
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Estado visível: animação dispara */
+.title-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.title-visible::after {
+  width: 60%;
+}
+
+.campanhas-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 0%;
+  height: 4px;
+  background: linear-gradient(to right, #3da644, transparent);
+  border-radius: 2px;
+  transition: width 0.8s ease 0.5s; /* aparece depois do texto */
+}
