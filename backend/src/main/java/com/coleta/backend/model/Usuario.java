@@ -3,6 +3,7 @@ package com.coleta.backend.model;
 import jakarta.persistence.*;
 
 @Entity
+@Inheritance(strategy = InheritanceType.JOINED) // Estratégia de herança para criar tabelas separadas
 public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
