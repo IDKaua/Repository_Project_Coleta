@@ -1,0 +1,137 @@
+.instrucoes-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  flex-shrink: 0;
+  height: 135px;
+}
+
+/* ===== HEADER COM AVISO ===== */
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 2px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.warning-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.card-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #2d8659;
+  margin: 0;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+/* ===== LISTA DE INSTRUÇÕES ===== */
+.instrucoes-list {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 85px;
+  overflow: hidden;
+}
+
+.instrucao-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 5px;
+  background: #f9f9f9;
+  transition: all 0.3s ease;
+  border-left: 3px solid #2d8659;
+  flex-shrink: 0;
+}
+
+.instrucao-item:hover {
+  background: #f0f8f4;
+  transform: translateX(2px);
+}
+
+.instr-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.instr-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.instr-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+
+.instr-valor {
+  font-size: 11px;
+  color: #333;
+  margin: 0;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== RESPONSIVO ===== */
+@media (max-width: 768px) {
+  .instrucoes-card {
+    height: auto;
+  }
+
+  .instrucoes-list {
+    max-height: none;
+  }
+
+  .card-header {
+    padding: 8px 10px;
+  }
+  
+  .card-title {
+    font-size: 10px;
+  }
+  
+  .instrucoes-list {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+  
+  .instrucao-item {
+    padding: 6px;
+    gap: 6px;
+  }
+  
+  .instr-icon {
+    font-size: 12px;
+    width: 18px;
+    height: 18px;
+  }
+  
+  .instr-label {
+    font-size: 8px;
+  }
+  
+  .instr-valor {
+    font-size: 10px;
+  }
+}

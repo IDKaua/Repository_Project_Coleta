@@ -10,7 +10,7 @@ import PainelCooperativa from './views/Painel-Cooperativa/PainelCooperativa'
 import ContaCooperativa from './views/Conta-Cooperativa/ContaCooperativa';
 import MapaCooperativa from './views/Mapa-cooperativa/MapaCooperativa';
 import MinhaConta from './views/MinhaConta/MinhaConta';
-
+import Coletor from './views/Coletor/Coletor';
 
 
 import './App.css';
@@ -29,6 +29,7 @@ function App() {
         <Route path="/conta-cooperativa" element={<ContaCooperativa />} />
         <Route path="/mapa-cooperativa" element={<MapaCooperativa />} />
         <Route path="/minha-conta" element={<MinhaConta />} />
+        <Route path="/coletor" element={<Coletor />} />
         
         
         

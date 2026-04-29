@@ -8,11 +8,11 @@ const ServiceCard = ({ tipo, icone, desc }) => {
   const handleAccess = () => {
     if (tipo === "USUÁRIO") {
       navigate('/solicitar-coleta');
-    } else {
-      if (tipo === "COOPERATIVA") {
-        navigate('/conta-cooperativa')
-      }
-    } 
+    } else if (tipo === "COOPERATIVA") {
+      navigate('/conta-cooperativa');
+    } else if (tipo === "COLETOR") {
+      navigate('/coletor'); // <--- Nova rota adicionada aqui
+    }
   };
 
   return (

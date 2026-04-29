@@ -2,7 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ServiceCard from '../../components/ServiceCard/ServiceCard';
 import Campanha from './Campanha';
-import Parcerias from './Parcerias';   // ← novo import
+import Parcerias from './Parcerias';
+import Funcoes from './Funcoes';       // ← novo import
+import SobreNos from './SobreNos';
+import Footer from './Footer';
 import './Home.css';
 
 const Home = () => {
@@ -77,8 +80,10 @@ const Home = () => {
           </div>
         </section>
 
-        {/* Parcerias aparece ANTES das campanhas */}
         <Parcerias />
+
+        {/* Funções aparece APÓS Parcerias e ANTES de Campanhas */}
+        <Funcoes />
 
         <section id="campanha" ref={campanhasRef} className="campanhas-section">
           <h2 className={`campanhas-title ${campanhasVisible ? 'title-visible' : ''}`}>
@@ -86,7 +91,11 @@ const Home = () => {
           </h2>
           <Campanha />
         </section>
+
+        <SobreNos />
       </main>
+
+      <Footer />
     </div>
   );
 };

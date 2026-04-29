@@ -1,7 +1,9 @@
-import React from "react";
+import React, { forwardRef } from "react";
 
-const FilaColetas = ({ coletas }) => (
-  <section className="painel-card">
+// Utilizamos forwardRef para permitir que o pai (PainelCooperativa) 
+// controle o scroll até este elemento específico
+const FilaColetas = forwardRef(({ coletas, onSelectColeta }, ref) => (
+  <section className="painel-card" ref={ref}>
     <div className="card-header-tag">
       <i className="fas fa-truck"></i>
       <h3>FILA DE COLETAS A RECEBER</h3>
@@ -21,7 +23,9 @@ const FilaColetas = ({ coletas }) => (
         <tbody>
           {coletas.map((c) => (
             <tr key={c.id}>
-              <td><span className="id-badge">{c.id}</span></td>
+              <td>
+                <span className="id-badge">{c.id}</span>
+              </td>
               <td>{c.tipoEquipamento}</td>
               <td>{c.quantidade}</td>
               <td>
@@ -30,11 +34,19 @@ const FilaColetas = ({ coletas }) => (
                 </span>
               </td>
               <td>
-                <select className="acao-select">
-                  <option>Atribuir Coletor</option>
-                  <option>Em andamento</option>
-                  <option>Concluído</option>
-                </select>
+                {c.status === "Pendente" ? (
+                  <button
+                    className="btn-novo"
+                    onClick={() => onSelectColeta(c.id)}
+                    style={{ background: "#438e44" }}
+                  >
+                    Atribuir Coletor
+                  </button>
+                ) : (
+                  <span className="porte-tag porte-pequeno">
+                    {c.status} — {c.coletorAtribuido}
+                  </span>
+                )}
               </td>
             </tr>
           ))}
@@ -42,6 +54,6 @@ const FilaColetas = ({ coletas }) => (
       </table>
     </div>
   </section>
-);
+));
 
 export default FilaColetas;
