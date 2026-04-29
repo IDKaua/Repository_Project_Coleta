@@ -2,45 +2,47 @@ import React from 'react';
 import './ColetaDetails.css';
 
 function ColetaDetails() {
-  const items = [
-    { id: 1, name: 'Computadores', quantity: 2, icon: '💻' },
-    { id: 2, name: 'Monitor', quantity: 1, icon: '🖥️' },
-    { id: 3, name: '*Eletrônicos / Periféricos**', quantity: null, icon: '⚡' }
-  ];
-
   return (
-    <div className="coleta-card">
-      <div className="card-header">
-        <span className="location-icon">📍</span>
-        <h2 className="card-title">IENDERECO DE COLETA</h2>
-      </div>
-      
-      <div className="coleta-content">
-        <div className="endereco-item">
-          <span className="endereco-pin">📍</span>
-          <p className="endereco-texto">Av. Principal, 123, Centro, Vitória - ES</p>
-        </div>
-        
-        <p className="entrada-info">Entrada pelo portão lateral.</p>
-      </div>
-      
-      {/* Itens para Coleta */}
-      <div className="coleta-card">
+    <div className="coleta-container">
+      {/* PREVISÃO DE CHEGADA */}
+      <div className="coleta-card previsao-card">
         <div className="card-header">
-          <span className="items-icon">📦</span>
-          <h2 className="card-title">ITENS PARA COLETA</h2>
+          <span className="header-icon">✓</span>
+          <h2 className="card-title">INSTRUÇÕES</h2>
         </div>
         
-        <div className="items-list">
-          {items.map((item) => (
-            <div key={item.id} className="item-row">
-              <span className="item-icon">{item.icon}</span>
-              <span className="item-name">{item.name}</span>
-              {item.quantity && (
-                <span className="item-quantity">(x{item.quantity})</span>
-              )}
-            </div>
-          ))}
+        <div className="previsao-content">
+          <p className="status">Coletar até:</p>
+          <p className="tempo">12:00</p>
+        </div>
+      </div>
+
+      {/* RESUMO DA COLETA */}
+      <div className="coleta-card resumo-card">
+        <h2 className="resumo-title">RESUMO DA COLETA</h2>
+        
+        <div className="resumo-item">
+          <span className="resumo-icon">♻️</span>
+          <div className="resumo-content">
+            <p className="resumo-label">Items:</p>
+            <p className="resumo-value">2x Computadores, 1x Monitor</p>
+          </div>
+        </div>
+
+        <div className="resumo-item">
+          <span className="resumo-icon">📍</span>
+          <div className="resumo-content">
+            <p className="resumo-label">Destino:</p>
+            <p className="resumo-value">Av. Principal, 123 - Centro</p>
+          </div>
+        </div>
+
+        <div className="resumo-item">
+          <span className="resumo-icon">📦</span>
+          <div className="resumo-content">
+            <p className="resumo-label">Porte:</p>
+            <p className="resumo-value">Médio</p>
+          </div>
         </div>
       </div>
     </div>
