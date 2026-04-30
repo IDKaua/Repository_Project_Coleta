@@ -1,0 +1,94 @@
+.card-glass {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  transition: 0.4s;
+}
+
+.card-glass:hover {
+  border-color: #22c55e;
+  transform: translateY(-10px);
+  background: rgba(34, 197, 94, 0.05);
+  background: rgba(34, 197, 94, 0.08); /* Um pouco mais de brilho no hover */
+  box-shadow: 0 10px 30px rgba(34, 197, 94, 0.2); /* Brilho verde neon embaixo */
+}
+
+.card-icon-box {
+  background: rgba(34, 197, 94, 0.1);
+  width: 70px;
+  height: 70px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 25px;
+}
+
+.card-icon-box i {
+  font-size: 2.2rem;
+  color: #22c55e;
+}
+
+.card-glass h3 {
+  color: white;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.card-glass p {
+  color: #888;
+  font-size: 0.9rem;
+  margin-bottom: 30px;
+}
+
+.btn-acessar {
+  background: #22c55e;
+  color: white;
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-acessar:hover {
+  background: #16a34a;
+  transform: scale(1.02);
+  box-shadow: 0 5px 15px rgba(34, 197, 94, 0.3);
+}
+
+.service-card {
+  background: #dfd3d3; /* Fundo branco sólido conforme pedido */
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05); /* Sombra leve para dar profundidade */
+}
+
+.service-card:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 20px 40px rgba(34, 197, 94, 0.15);
+  border-color: #22c55e;
+}
+
+.service-card h3 {
+  color: #1a1a1a; /* Texto escuro para fundo branco */
+  font-weight: 800;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+}
+
+.service-card p {
+  color: #666666; /* Cinza suave para a descrição */
+  font-size: 0.95rem;
+  margin-bottom: 30px;
+  line-height: 1.5;
+}
