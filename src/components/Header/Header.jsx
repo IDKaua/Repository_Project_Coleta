@@ -1,29 +1,57 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { HashLink } from 'react-router-hash-link';
 import './Header.css';
 
 const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // O Detetive: Verifica se existe alguém logado no localStorage
-  const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
+  // Lê o login de forma segura
+  const getUsuarioSeguro = () => {
+    try {
+      const user = localStorage.getItem('usuarioLogado');
+      if (user && user !== 'undefined' && user !== 'null') {
+        return JSON.parse(user);
+      }
+    } catch (error) {
+      return null;
+    }
+    return null;
+  };
 
-  // Função para terminar a sessão
+  const usuarioLogado = getUsuarioSeguro();
+
+  // 1. Rota para o Painel (Dashboard)
+  const linkDashboard = usuarioLogado?.tipoUsuario === 'COOPERATIVA' 
+    ? '/painel-cooperativa' 
+    : '/solicitar-coleta'; 
+
+  // 2. Rota para os Dados da Conta (Perfil)
+  const linkDoPerfil = usuarioLogado?.tipoUsuario === 'COOPERATIVA' 
+    ? '/conta-cooperativa' // <-- Coloquei com C maiúsculo como você tinha me dito antes!
+    : '/minha-conta';    
+
+  // ====================================================================
+  // A MÁGICA DO REDIRECIONAMENTO AUTOMÁTICO (Agora usa linkDashboard)
+  // ====================================================================
+  useEffect(() => {
+    if (usuarioLogado && (location.pathname === '/' || location.pathname === '/login')) {
+      navigate(linkDashboard, { replace: true }); 
+    }
+  }, [usuarioLogado, location.pathname, navigate, linkDashboard]);
+
+  // Função para deslogar
   const handleLogout = () => {
     localStorage.removeItem('usuarioLogado');
     navigate('/');
   };
 
-  // A MÁGICA DO ROTEAMENTO
-  const linkDoPerfil = usuarioLogado?.tipoUsuario === 'COOPERATIVA' 
-    ? '/ContaCooperativa' 
-    : '/minha-conta';
-
   return (
     <header className="main-header header-glass">
       <div className="header-container">
-        {/* Logótipo */}
+        
+        {/* Logo Original */}
         <Link to="/" className="header-logo">
           <div className="logo-container">
             <i className="fas fa-recycle header-logo-icon"></i>
@@ -35,10 +63,10 @@ const Header = () => {
         <div className="header-actions">
           
           {usuarioLogado ? (
-            /* --- ECRÃ DE UTILIZADOR LOGADO --- */
+            /* --- TELA LOGADA (Aparece apenas lá nos painéis) --- */
             <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
               
-              {/* ÁREA DE PERFIL INTELIGENTE */}
+              {/* O CLIQUE DO USUÁRIO (Agora usa linkDoPerfil) */}
               <Link 
                 to={linkDoPerfil} 
                 style={{ 
@@ -52,11 +80,10 @@ const Header = () => {
               >
                 <i className="fas fa-user-circle" style={{ fontSize: '28px' }}></i>
                 <span style={{ fontSize: '1.1rem', fontWeight: '500' }}>
-                  Olá, {usuarioLogado.nome ? usuarioLogado.nome.split(' ')[0] : 'Utilizador'}
+                  Olá, {usuarioLogado.nome ? usuarioLogado.nome.split(' ')[0] : 'Usuário'}
                 </span>
               </Link>
               
-              {/* Botão de Sair */}
               <div 
                 className="header-login-area" 
                 onClick={handleLogout}
@@ -67,17 +94,18 @@ const Header = () => {
                 </div>
                 <span className="login-text" style={{ color: '#fff' }}>Sair</span>
               </div>
-
             </div>
+
           ) : (
-            /* --- ECRÃ DE VISITANTE --- */
+
+            /* --- TELA SEM LOGIN (Menu Intacto na Home) --- */
             <>
               <nav className="header-nav">
                 <ul>
                   <li><HashLink smooth to="/">Início</HashLink></li>
                   <li><Link to="#">Serviços</Link></li>
                   <li><Link to="#">Parceiros</Link></li>
-                  <li><Link to="#">Funções</Link></li>
+                  <li><Link to="#">Funçoes</Link></li>
                   <li><HashLink smooth to="/#campanha">Campanha</HashLink></li>
                   <li><Link to="/sobre">Sobre Nós</Link></li>
                 </ul>
@@ -90,6 +118,7 @@ const Header = () => {
                 <span className="login-text">Faça Login</span>
               </Link>
             </>
+            
           )}
 
         </div>

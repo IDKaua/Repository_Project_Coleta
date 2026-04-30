@@ -1,14 +1,9 @@
-import React, { useState, useRef } from "react";
-
-const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado")) || {
-  nome: "João Silva",
-  email: "joao.silva@email.com",
-};
+import React, { useState, useRef, useEffect } from "react";
 
 const EXTRATO_MOCK = [
-  { data: "03/07/2023", descricao: "Coleta realizada",   pontos: "+250 PTS" },
-  { data: "06/07/2023", descricao: "Coleta realizada",   pontos: "+500 PTS" },
-  { data: "10/07/2023", descricao: "Bônus de cadastro",  pontos: "+500 PTS" },
+  { data: "03/07/2023", descricao: "Coleta realizada",  pontos: "+250 PTS" },
+  { data: "06/07/2023", descricao: "Coleta realizada",  pontos: "+500 PTS" },
+  { data: "10/07/2023", descricao: "Bônus de cadastro", pontos: "+500 PTS" },
 ];
 
 const MeuPerfil = () => {
@@ -18,17 +13,32 @@ const MeuPerfil = () => {
   const [mostrarExtrato, setMostrarExtrato] = useState(false);
 
   const [form, setForm] = useState({
-    nome:     usuarioLogado.nome  || "",
-    email:    usuarioLogado.email || "",
+    nome: "",
+    email: "",
     telefone: "",
-    cpf:      "",
+    cpf: "",
   });
 
   const [editando, setEditando] = useState({
-    nome: false, email: false, telefone: false, cpf: false,
+    nome: false, email: false, telefone: false,
   });
 
   const [erros, setErros] = useState({});
+
+  // ── MÁGICA: Buscar dados da memória ao abrir a tela ────────
+  useEffect(() => {
+    const usuarioLogadoString = localStorage.getItem("usuarioLogado");
+    
+    if (usuarioLogadoString) {
+      const usuarioObj = JSON.parse(usuarioLogadoString);
+      setForm({
+        nome: usuarioObj.nome || "Nome não informado",
+        email: usuarioObj.email || "email@naoinformado.com",
+        telefone: formatarTelefone(usuarioObj.telefone || ""),
+        cpf: formatarCPF(usuarioObj.documento || ""), // Puxa do documento salvo no login
+      });
+    }
+  }, []);
 
   // ── Foto ─────────────────────────────────────────────────
   const handleFotoChange = (e) => {
@@ -40,6 +50,7 @@ const MeuPerfil = () => {
 
   // ── Formatações ──────────────────────────────────────────
   const formatarTelefone = (valor) => {
+    if (!valor) return "";
     const nums = valor.replace(/\D/g, "").slice(0, 11);
     if (nums.length <= 10)
       return nums.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3").trim();
@@ -47,6 +58,7 @@ const MeuPerfil = () => {
   };
 
   const formatarCPF = (valor) => {
+    if (!valor) return "";
     const nums = valor.replace(/\D/g, "").slice(0, 11);
     return nums
       .replace(/(\d{3})(\d)/, "$1.$2")
@@ -58,19 +70,16 @@ const MeuPerfil = () => {
   const validar = (campo, valor) => {
     switch (campo) {
       case "nome":
-        if (!valor.trim()) return "Nome é obrigatório.";
+        if (!valor || !valor.trim()) return "Nome é obrigatório.";
         if (valor.trim().length < 3) return "Nome muito curto.";
         if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(valor)) return "Nome não pode conter números.";
         return "";
       case "email":
-        if (!valor.trim()) return "Email é obrigatório.";
+        if (!valor || !valor.trim()) return "Email é obrigatório.";
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor)) return "Email inválido.";
         return "";
       case "telefone":
         if (valor && valor.replace(/\D/g, "").length < 10) return "Telefone inválido (mín. 10 dígitos).";
-        return "";
-      case "cpf":
-        if (valor && valor.replace(/\D/g, "").length !== 11) return "CPF deve ter 11 dígitos.";
         return "";
       default: return "";
     }
@@ -80,7 +89,6 @@ const MeuPerfil = () => {
     const { name, value } = e.target;
     let novoValor = value;
     if (name === "telefone") novoValor = formatarTelefone(value);
-    if (name === "cpf")      novoValor = formatarCPF(value);
     if (name === "nome")     novoValor = value.replace(/[^a-zA-ZÀ-ÿ\s]/g, "").slice(0, 80);
     if (name === "email")    novoValor = value.slice(0, 100);
     setForm((prev) => ({ ...prev, [name]: novoValor }));
@@ -98,21 +106,23 @@ const MeuPerfil = () => {
 
   const handleSalvar = () => {
     const novosErros = {};
-    Object.keys(form).forEach((c) => { novosErros[c] = validar(c, form[c]); });
+    ["nome", "email", "telefone"].forEach((c) => { novosErros[c] = validar(c, form[c]); });
+    
     setErros(novosErros);
     if (Object.values(novosErros).some((e) => e)) {
       alert("Corrija os erros antes de salvar.");
       return;
     }
-    setEditando({ nome: false, email: false, telefone: false, cpf: false });
+    setEditando({ nome: false, email: false, telefone: false });
     alert("Alterações salvas com sucesso!");
   };
 
+  // ADICIONAMOS A PROPRIEDADE EDITAVEL AQUI!
   const campos = [
-    { key: "nome",     label: "Nome:",    icon: "fas fa-user",     type: "text",  placeholder: "Seu nome completo" },
-    { key: "email",    label: "Email:",   icon: "fas fa-envelope", type: "email", placeholder: "seu@email.com"     },
-    { key: "telefone", label: "Telefone", icon: "fas fa-phone",    type: "text",  placeholder: "(00) 00000-0000"   },
-    { key: "cpf",      label: "CPF",      icon: "fas fa-id-card",  type: "text",  placeholder: "000.000.000-00"    },
+    { key: "nome",     label: "Nome:",    icon: "fas fa-user",     type: "text",  placeholder: "Seu nome completo", editavel: true },
+    { key: "email",    label: "Email:",   icon: "fas fa-envelope", type: "email", placeholder: "seu@email.com",     editavel: true },
+    { key: "telefone", label: "Telefone", icon: "fas fa-phone",    type: "text",  placeholder: "(00) 00000-0000",   editavel: true },
+    { key: "cpf",      label: "CPF",      icon: "fas fa-id-card",  type: "text",  placeholder: "000.000.000-00",    editavel: false },
   ];
 
   return (
@@ -163,17 +173,17 @@ const MeuPerfil = () => {
         <button className="btn-alterar-foto" onClick={() => fileInputRef.current.click()}>
            <i className="fas fa-camera"></i> Alterar Foto
         </button>
-        <h3 className="avatar-nome">{form.nome || usuarioLogado.nome}</h3>
-        <p className="avatar-email">{form.email || usuarioLogado.email}</p>
+        <h3 className="avatar-nome">{form.nome}</h3>
+        <p className="avatar-email">{form.email}</p>
       </div>
 
       <hr className="perfil-divider" />
       <h3 className="dados-titulo">Dados Cadastrais</h3>
 
-      {campos.map(({ key, label, icon, type, placeholder }) => (
+      {campos.map(({ key, label, icon, type, placeholder, editavel }) => (
         <div className="campo-grupo" key={key}>
           <label>{label}</label>
-          <div className={`input-icon-wrap ${editando[key] ? "editando" : ""}`}>
+          <div className={`input-icon-wrap ${editavel && editando[key] ? "editando" : ""}`}>
             <i className={icon}></i>
             <input
               type={type}
@@ -181,17 +191,26 @@ const MeuPerfil = () => {
               value={form[key]}
               onChange={handleChange}
               placeholder={placeholder}
-              readOnly={!editando[key]}
-              style={{ cursor: editando[key] ? "text" : "default", background: editando[key] ? "#fff" : "#f9fafb" }}
+              readOnly={!editavel || !editando[key]}
+              style={{ 
+                cursor: editavel && editando[key] ? "text" : "not-allowed", 
+                background: editavel && editando[key] ? "#fff" : (!editavel ? "#e5e7eb" : "#f9fafb"),
+                color: !editavel ? "#6b7280" : "inherit"
+              }}
             />
-            <button
-              type="button"
-              className={`btn-lapiz ${editando[key] ? "ativo" : ""}`}
-              onClick={() => toggleEditar(key)}
-              title={editando[key] ? "Confirmar edição" : "Editar campo"}
-            >
-              <i className={editando[key] ? "fas fa-check" : "fas fa-pencil-alt"}></i>
-            </button>
+            
+            {/* O botão de lápis só aparece se editavel for true */}
+            {editavel && (
+              <button
+                type="button"
+                className={`btn-lapiz ${editando[key] ? "ativo" : ""}`}
+                onClick={() => toggleEditar(key)}
+                title={editando[key] ? "Confirmar edição" : "Editar campo"}
+              >
+                <i className={editando[key] ? "fas fa-check" : "fas fa-pencil-alt"}></i>
+              </button>
+            )}
+
           </div>
           {erros[key] && <span className="erro-campo">{erros[key]}</span>}
         </div>
