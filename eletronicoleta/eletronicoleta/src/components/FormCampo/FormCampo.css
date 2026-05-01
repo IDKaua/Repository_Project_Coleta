@@ -1,0 +1,47 @@
+.campo-form-end {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  flex: 1;
+}
+
+.campo-form-end label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.campo-form-end input,
+.campo-form-end select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 14px;
+  color: #374151;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+.campo-form-end input:focus,
+.campo-form-end select:focus { 
+  border-color: #438e44; 
+}
+
+.campo-form-end input.input-erro,
+.campo-form-end select.input-erro { 
+  border-color: #e53e3e; 
+  background: #fff5f5; 
+}
+
+.erro-campo {
+  display: block;
+  font-size: 11px;
+  color: #e53e3e;
+  margin-top: 4px;
+  padding-left: 4px;
+}

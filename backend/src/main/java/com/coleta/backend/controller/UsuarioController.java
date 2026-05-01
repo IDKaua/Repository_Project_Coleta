@@ -19,13 +19,50 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 public class UsuarioController {
 
+    // Trouxe todos os Repositories para o topo por organização
     @Autowired
     private UsuarioRepository repository;
 
-    // Rota 1: O Cadastro que você já testou e funcionou
+    @Autowired
+    private CooperativaRepository cooperativaRepository;
+
+    @Autowired
+    private ColetorRepository coletorRepository;
+
+    // Rota 1: O Cadastro Inteligente (Separa Morador e Cooperativa)
     @PostMapping("/cadastrar")
-    public Usuario cadastrar(@RequestBody Usuario usuario) {
-        return repository.save(usuario);
+    public ResponseEntity<?> cadastrar(@RequestBody Usuario dados) {
+        
+        // O Java verifica a palavra exata que o React enviou
+        if ("COOPERATIVA".equals(dados.getTipoUsuario())) {
+            
+            // Instancia a classe filha para forçar a criação na tabela cooperativa
+            Cooperativa coop = new Cooperativa();
+            coop.setNome(dados.getNome());
+            coop.setEmail(dados.getEmail());
+            coop.setDocumento(dados.getDocumento());
+            coop.setSenha(dados.getSenha());
+            coop.setTelefone(dados.getTelefone());
+            coop.setTipoUsuario("COOPERATIVA");
+            
+            // Copia os dados de endereço
+            coop.setCep(dados.getCep());
+            coop.setRua(dados.getRua());
+            coop.setNumero(dados.getNumero());
+            coop.setBairro(dados.getBairro());
+            coop.setCidade(dados.getCidade());
+            coop.setEstado(dados.getEstado());
+            
+            // AQUI ESTÁ A MÁGICA: Salva usando o CooperativaRepository!
+            cooperativaRepository.save(coop); 
+            return ResponseEntity.ok(coop);
+            
+        } else {
+            // Se não for cooperativa, força o tipo MORADOR e salva na tabela comum
+            dados.setTipoUsuario("MORADOR");
+            repository.save(dados);
+            return ResponseEntity.ok(dados);
+        }
     }
 
     // Rota 2: A Mágica do Login
@@ -34,47 +71,35 @@ public class UsuarioController {
         String documento = credenciais.get("documento");
         String senha = credenciais.get("senha");
 
-        // Vai no banco de dados e procura se existe alguém com esse CPF/CNPJ
         Optional<Usuario> usuarioOpt = repository.findByDocumento(documento);
 
-        // Se encontrou o usuário...
         if (usuarioOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
-            // Confere se a senha que veio no Postman é igual a que está salva no banco
             if (usuario.getSenha().equals(senha)) {
-                return ResponseEntity.ok(usuario); // Sucesso! Devolve os dados do usuário.
+                return ResponseEntity.ok(usuario); 
             } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Senha incorreta!"); // Erro 401
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Senha incorreta!"); 
             }
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado!"); // Erro 404
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado!"); 
         }
     }
-    @Autowired
-    private CooperativaRepository cooperativaRepository;
 
-    @Autowired
-    private ColetorRepository coletorRepository;
-
-    // 2. A rota administrativa
+    // Rota 3: A rota administrativa (Cooperativa cadastra Coletor)
     @PostMapping("/cooperativa/{idCoo}/cadastrar-coletor")
     public ResponseEntity<?> cadastrarFuncionario(@PathVariable Long idCoo, @RequestBody Coletor novoColetor) {
         
-        // Verifica se a empresa realmente existe no banco
         Optional<Cooperativa> coopOpt = cooperativaRepository.findById(idCoo);
         
         if (coopOpt.isEmpty()) {
             return ResponseEntity.badRequest().body("Erro: Cooperativa não encontrada!");
         }
 
-        // Pega a cooperativa de dentro do Optional
         Cooperativa cooperativa = coopOpt.get();
         
-        // Amarra o funcionário à empresa e define o tipo
         novoColetor.setCooperativa(cooperativa); 
         novoColetor.setTipoUsuario("COLETOR");
         
-        // Salva na nuvem!
         coletorRepository.save(novoColetor);
         
         return ResponseEntity.ok("Coletor cadastrado com sucesso pela empresa " + cooperativa.getNome());

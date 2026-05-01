@@ -3,7 +3,6 @@ import './Coletor.css';
 import MapCard from './MapCard/MapCard';
 import ClienteInfo from './ClienteInfo/ClienteInfo';
 import ColetaDetails from './ColetaDetails/ColetaDetails';
-import Instrucoes from './Instrucoes/Instrucoes';
 
 function Coletor() {
   return (
@@ -18,7 +17,6 @@ function Coletor() {
         <div className="coletor-right">
           <ClienteInfo />
           <ColetaDetails />
-          <Instrucoes />
         </div>
       </div>
     </div>

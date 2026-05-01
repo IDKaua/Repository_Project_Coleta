@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./SolicitarColeta.css";
-import "./FormColeta.css"
+import "./FormColeta.css";
 
 import UploadFotos    from "./UploadFotos";
 import InfoLixo       from "./InfoLixo";
@@ -97,16 +97,18 @@ const SolicitarColeta = () => {
         <h1 className="titulo-sessao">NOVA SOLICITAÇÃO DE COLETA</h1>
 
         <form onSubmit={handleSubmit}>
-          <UploadFotos fotos={fotos} setFotos={setFotos} />
-
+          
           <div className="coleta-grid">
+            {/* COLUNA ESQUERDA */}
             <InfoLixo
               formData={formData}
               setFormData={setFormData}
               handleChange={handleChange}
             />
 
+            {/* COLUNA DIREITA */}
             <div className="coluna-direita">
+              <UploadFotos fotos={fotos} setFotos={setFotos} />
               <EnderecoColeta formData={formData} handleChange={handleChange} />
               <Agendamento    formData={formData} handleChange={handleChange} />
             </div>
