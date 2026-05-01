@@ -6,12 +6,10 @@ import { useNavigate } from 'react-router-dom';
 const ServiceCard = ({ tipo, icone, desc }) => {
   const navigate = useNavigate();
   const handleAccess = () => {
-    if (tipo === "USUÁRIO") {
+    if (tipo === "MORADOR") {
       navigate('/solicitar-coleta');
-    } else if (tipo === "COOPERATIVA") {
-      navigate('/conta-cooperativa');
-    } else if (tipo === "COLETOR") {
-      navigate('/coletor'); // <--- Nova rota adicionada aqui
+    } else {
+      // Lógica para os outros cards
     }
   };
 

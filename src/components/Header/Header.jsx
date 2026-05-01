@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { HashLink } from 'react-router-hash-link';
@@ -47,9 +48,16 @@ const Header = () => {
     navigate('/');
   };
 
+=======
+import React from 'react';
+import './Header.css';
+
+const Header = () => {
+>>>>>>> parent of 99633f7 (Alteração - Kauã)
   return (
-    <header className="main-header header-glass">
+    <header className="main-header">
       <div className="header-container">
+<<<<<<< HEAD
         
         {/* Logo Original */}
         <Link to="/" className="header-logo">
@@ -58,9 +66,17 @@ const Header = () => {
             <span>EcoTech</span>
           </div>
         </Link>
+=======
+        {/* Lado Esquerdo: Logo */}
+        <div className="header-logo">
+          <i className="fas fa-recycle header-logo-icon"></i>
+          <span>ELETRONICOLETA</span>
+        </div>
+>>>>>>> parent of 99633f7 (Alteração - Kauã)
 
-        {/* Menu de Navegação e Ações */}
+        {/* Lado Direito: Menu + Login */}
         <div className="header-actions">
+<<<<<<< HEAD
           
           {usuarioLogado ? (
             /* --- TELA LOGADA (Aparece apenas lá nos painéis) --- */
@@ -121,6 +137,25 @@ const Header = () => {
             
           )}
 
+=======
+          <nav className="header-nav">
+            <ul>
+              <li><a href="#home">Home</a></li>
+              <li><a href="#funcoes">Funções</a></li>
+              <li><a href="#sobre">Sobre</a></li>
+              <li><a href="#fale-conosco">Fale Conosco</a></li>
+            </ul>
+          </nav>
+
+          {/* NOVO BLOCO DE LOGIN: Clicável para a tela de login */}
+          {/* Se usar rotas, mude <a> por <Link to="/login"> */}
+          <a href="/login" className="header-login-area">
+            <div className="login-icon-box">
+              <i className="fas fa-user-circle"></i> {/* Ícone de usuário redondo */}
+            </div>
+            <span className="login-text">Faça Login</span>
+          </a>
+>>>>>>> parent of 99633f7 (Alteração - Kauã)
         </div>
       </div>
     </header>

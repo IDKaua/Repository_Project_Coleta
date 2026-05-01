@@ -9,7 +9,7 @@ body {
   margin: 0;
   padding: 0;
   background-color: #0a0f0a; /* Fundo escuro padrão */
- /* overflow-x: hidden; /* Proíbe a barra de rolagem lateral */
+  overflow-x: hidden; /* Proíbe a barra de rolagem lateral */
   width: 100%;
 }
 
