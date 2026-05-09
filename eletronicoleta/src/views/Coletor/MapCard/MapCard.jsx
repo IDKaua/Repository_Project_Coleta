@@ -1,67 +1,96 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import './MapCard.css';
 
+// Ícone do Cliente (Vitória Almeida)
+const customerIcon = L.divIcon({
+  html: `<div style="background: #ef4444; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.3);"></div>`,
+  className: 'custom-pin',
+  iconSize: [16, 16],
+  iconAnchor: [8, 8]
+});
+
+// Ícone do Caminhão
+const truckIcon = L.divIcon({
+  html: `<div style="color: #2d8659; font-size: 20px; background: white; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 2px solid #2d8659; box-shadow: 0 4px 6px rgba(0,0,0,0.2);"><i class="fas fa-truck"></i></div>`,
+  className: 'custom-pin',
+  iconSize: [36, 36],
+  iconAnchor: [18, 18]
+});
+
+// Ajusta a câmera do mapa
+const AjustarCamera = ({ truckLoc, clientLoc }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (truckLoc && clientLoc) {
+      const bounds = L.latLngBounds([truckLoc, clientLoc]);
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [truckLoc, clientLoc, map]);
+  return null;
+};
+
 function MapCard() {
+  const [routeCoords, setRouteCoords] = useState([]);
+  const [truckLoc, setTruckLoc] = useState(null);
+
+  // Coordenadas em Maceió
+  const clientLoc = [-9.6650, -35.7350]; 
+  const startLoc = [-9.6540, -35.7315];  
+
+  useEffect(() => {
+    fetch(`https://router.project-osrm.org/route/v1/driving/${startLoc[1]},${startLoc[0]};${clientLoc[1]},${clientLoc[0]}?overview=full&geometries=geojson`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.routes && data.routes.length > 0) {
+          const coordsDaRua = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+          setRouteCoords(coordsDaRua);
+          setTruckLoc(coordsDaRua[0]);
+        }
+      });
+  }, []);
+
+  useEffect(() => {
+    if (routeCoords.length > 0) {
+      let passoAtual = 0;
+      const animacao = setInterval(() => {
+        if (passoAtual < routeCoords.length) {
+          setTruckLoc(routeCoords[passoAtual]);
+          passoAtual += 2;
+        } else {
+          clearInterval(animacao);
+        }
+      }, 300);
+      return () => clearInterval(animacao);
+    }
+  }, [routeCoords]);
+
   return (
-    <div className="map-card">
-      {/* Simulação do Mapa */}
-      <svg viewBox="0 0 400 500" className="map-svg">
-        {/* Background do mapa */}
-        <rect width="400" height="500" fill="#e8e8e8" />
+    <div className="map-card" style={{ height: '550px', width: '100%', position: 'relative', overflow: 'hidden', zIndex: 1 }}>
+      <MapContainer center={startLoc} zoom={14} style={{ height: '100%', width: '100%' }} zoomControl={false}>
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         
-        {/* Linhas de ruas */}
-        <line x1="0" y1="80" x2="400" y2="80" stroke="#d0d0d0" strokeWidth="8" />
-        <line x1="0" y1="160" x2="400" y2="160" stroke="#d0d0d0" strokeWidth="8" />
-        <line x1="0" y1="240" x2="400" y2="240" stroke="#d0d0d0" strokeWidth="8" />
-        <line x1="0" y1="320" x2="400" y2="320" stroke="#d0d0d0" strokeWidth="8" />
-        <line x1="0" y1="400" x2="400" y2="400" stroke="#d0d0d0" strokeWidth="8" />
-        
-        <line x1="100" y1="0" x2="100" y2="500" stroke="#d0d0d0" strokeWidth="6" />
-        <line x1="200" y1="0" x2="200" y2="500" stroke="#d0d0d0" strokeWidth="6" />
-        <line x1="300" y1="0" x2="300" y2="500" stroke="#d0d0d0" strokeWidth="6" />
-        
-        {/* Rio/Verde */}
-        <path d="M 20 100 Q 30 200 40 400" stroke="#90d490" strokeWidth="25" fill="none" />
-        
-        {/* Quadras do mapa */}
-        <rect x="30" y="20" width="50" height="40" fill="#f0f0f0" stroke="#999" strokeWidth="1" />
-        <rect x="30" y="100" width="50" height="50" fill="#f0f0f0" stroke="#999" strokeWidth="1" />
-        <rect x="120" y="30" width="60" height="45" fill="#f0f0f0" stroke="#999" strokeWidth="1" />
-        <rect x="120" y="110" width="60" height="50" fill="#f0f0f0" stroke="#999" strokeWidth="1" />
-        <rect x="220" y="50" width="55" height="40" fill="#f0f0f0" stroke="#999" strokeWidth="1" />
-        <rect x="220" y="130" width="55" height="50" fill="#f0f0f0" stroke="#999" strokeWidth="1" />
-        <rect x="310" y="40" width="50" height="50" fill="#f0f0f0" stroke="#999" strokeWidth="1" />
-        
-        {/* Caminhão (rota) */}
-        <line x1="60" y1="250" x2="280" y2="280" stroke="#4a90e2" strokeWidth="8" />
-        <circle cx="60" cy="250" r="22" fill="#4a90e2" />
-        <circle cx="80" cy="255" r="8" fill="#fff" />
-        <rect x="65" y="240" width="30" height="15" fill="#4a90e2" />
-        
-        {/* Marcador de localização */}
-        <g className="location-pin">
-          <circle cx="120" cy="160" r="18" fill="#2d8659" />
-          <circle cx="120" cy="160" r="12" fill="#fff" />
-          <path d="M 120 155 L 125 165 L 115 165 Z" fill="#2d8659" />
-        </g>
-        
-        {/* Label do endereço */}
-        <g className="label-box">
-          <rect x="30" y="190" width="160" height="50" fill="#2d8659" rx="6" />
-          <circle cx="45" cy="210" r="8" fill="#fff" />
-          <text x="60" y="217" fontSize="14" fill="#fff" fontWeight="bold">Vitória Almeida</text>
-          <text x="60" y="232" fontSize="12" fill="#fff">Av. Principal, 123</text>
-        </g>
-      </svg>
-      
-      {/* Controles do mapa */}
-      <div className="map-controls">
-        <button className="control-btn compass">
-          <span className="compass-icon">🧭</span>
-        </button>
-        <button className="control-btn zoom-in">+</button>
-        <button className="control-btn zoom-out">−</button>
-      </div>
+        <AjustarCamera truckLoc={truckLoc} clientLoc={clientLoc} />
+
+        {routeCoords.length > 0 && (
+          <Polyline positions={routeCoords} color="#4a90e2" weight={5} opacity={0.8} dashArray="10, 10" />
+        )}
+
+        <Marker position={clientLoc} icon={customerIcon}>
+          <Popup>
+            <strong>Vitória Almeida</strong><br/>
+            Av. Principal, 123
+          </Popup>
+        </Marker>
+
+        {truckLoc && (
+          <Marker position={truckLoc} icon={truckIcon}>
+            <Popup>Seu veículo</Popup>
+          </Marker>
+        )}
+      </MapContainer>
     </div>
   );
 }

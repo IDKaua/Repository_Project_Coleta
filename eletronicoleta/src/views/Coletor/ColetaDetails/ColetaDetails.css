@@ -1,10 +1,8 @@
 .coleta-container {
   display: flex;
-  flex-direction:initial;
+  flex-direction: row;
   gap: 16px;
-  margin-right: auto;
-  width: 400px;
-  
+  width: 100%;      
 }
 
 /* ===== CARD BASE ===== */
@@ -14,7 +12,6 @@
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   flex-shrink: 0;
-  width: 65%;
 }
 
 /* ===== PREVISÃO DE CHEGADA ===== */
@@ -22,9 +19,7 @@
   padding: 20px;
   background: #f0faf4;
   border: 1px solid #d0e8dc;
-  margin-left: -70px;
-  width: 250px;
-  
+  width: 250px;      
 }
 
 .card-header {

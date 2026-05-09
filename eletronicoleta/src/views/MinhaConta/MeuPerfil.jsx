@@ -31,6 +31,7 @@ const MeuPerfil = () => {
     
     if (usuarioLogadoString) {
       const usuarioObj = JSON.parse(usuarioLogadoString);
+      if (usuarioObj.foto) setFoto(usuarioObj.foto);
       setForm({
         nome: usuarioObj.nome || "Nome não informado",
         email: usuarioObj.email || "email@naoinformado.com",
@@ -44,8 +45,23 @@ const MeuPerfil = () => {
   const handleFotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    
     const url = URL.createObjectURL(file);
     setFoto(url);
+
+    // Salvar no localStorage como base64 para persistir
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result;
+      const usuarioLogadoString = localStorage.getItem("usuarioLogado");
+      if (usuarioLogadoString) {
+        const usuarioObj = JSON.parse(usuarioLogadoString);
+        usuarioObj.foto = base64String;
+        localStorage.setItem("usuarioLogado", JSON.stringify(usuarioObj));
+        window.dispatchEvent(new Event('usuarioAtualizado'));
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   // ── Formatações ──────────────────────────────────────────

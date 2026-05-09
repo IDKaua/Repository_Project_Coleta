@@ -5,10 +5,7 @@
   overflow: hidden;
   padding: 50px;
   flex-shrink: 0;
-  width: 500px; /* Largura fixa */
-  height: 40vh;
-  margin-left: 25px;
-  
+  width: 100%;      
 }
 
 /* ===== HEADER DO COLETOR ===== */

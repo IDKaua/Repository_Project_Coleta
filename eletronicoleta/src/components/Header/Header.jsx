@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { HashLink } from 'react-router-hash-link';
 import './Header.css';
@@ -20,7 +20,17 @@ const Header = () => {
     return null;
   };
 
-  const usuarioLogado = getUsuarioSeguro();
+  const [usuarioLogado, setUsuarioLogado] = useState(() => getUsuarioSeguro());
+
+  useEffect(() => {
+    const handleUpdate = () => setUsuarioLogado(getUsuarioSeguro());
+    window.addEventListener('usuarioAtualizado', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('usuarioAtualizado', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
 
   // 1. Rota para o Painel (Dashboard)
   const linkDashboard = usuarioLogado?.tipoUsuario === 'COOPERATIVA' 
@@ -62,9 +72,21 @@ const Header = () => {
         {/* Menu de Navegação e Ações */}
         <div className="header-actions">
           
+          {/* --- TELA SEM LOGIN E COM LOGIN (Menu Intacto) --- */}
+          <nav className="header-nav">
+            <ul>
+              <li><HashLink smooth to="/home#home">Início</HashLink></li>
+              <li><HashLink smooth to="/home#servicos">Serviços</HashLink></li>
+              <li><HashLink smooth to="/home#parceiros">Parceiros</HashLink></li>
+              <li><HashLink smooth to="/home#funcoes">Funções</HashLink></li>
+              <li><HashLink smooth to="/home#campanha">Campanha</HashLink></li>
+              <li><HashLink smooth to="/home#sobre">Sobre Nós</HashLink></li>
+            </ul>
+          </nav>
+
           {usuarioLogado ? (
-            /* --- TELA LOGADA (Aparece apenas lá nos painéis) --- */
-            <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
+            /* --- TELA LOGADA --- */
+            <div style={{ display: 'flex', alignItems: 'center', gap: '30px', marginLeft: '20px' }}>
               
               {/* O CLIQUE DO USUÁRIO (Agora usa linkDoPerfil) */}
               <Link 
@@ -78,7 +100,11 @@ const Header = () => {
                   cursor: 'pointer' 
                 }}
               >
-                <i className="fas fa-user-circle" style={{ fontSize: '28px' }}></i>
+                {usuarioLogado.foto ? (
+                  <img src={usuarioLogado.foto} alt="Perfil" style={{ width: '35px', height: '35px', borderRadius: '50%', objectFit: 'cover' }} />
+                ) : (
+                  <i className="fas fa-user-circle" style={{ fontSize: '28px' }}></i>
+                )}
                 <span style={{ fontSize: '1.1rem', fontWeight: '500' }}>
                   Olá, {usuarioLogado.nome ? usuarioLogado.nome.split(' ')[0] : 'Usuário'}
                 </span>
@@ -98,26 +124,13 @@ const Header = () => {
 
           ) : (
 
-            /* --- TELA SEM LOGIN (Menu Intacto na Home) --- */
-            <>
-              <nav className="header-nav">
-                <ul>
-                  <li><HashLink smooth to="/">Início</HashLink></li>
-                  <li><Link to="#">Serviços</Link></li>
-                  <li><Link to="#">Parceiros</Link></li>
-                  <li><Link to="#">Funçoes</Link></li>
-                  <li><HashLink smooth to="/#campanha">Campanha</HashLink></li>
-                  <li><Link to="/sobre">Sobre Nós</Link></li>
-                </ul>
-              </nav>
-
-              <Link to="/login" className="header-login-area">
-                <div className="login-icon-box">
-                  <i className="fas fa-user-circle"></i>
-                </div>
-                <span className="login-text">Faça Login</span>
-              </Link>
-            </>
+            /* --- TELA SEM LOGIN (Botão de Login) --- */
+            <Link to="/login" className="header-login-area" style={{ marginLeft: '20px' }}>
+              <div className="login-icon-box">
+                <i className="fas fa-user-circle"></i>
+              </div>
+              <span className="login-text">Faça Login</span>
+            </Link>
             
           )}
 

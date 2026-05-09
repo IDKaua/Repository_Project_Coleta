@@ -77,7 +77,7 @@ const SobreNos = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} className={`sobre-section ${visivel ? 'sobre-visivel' : ''}`}>
+    <section id="sobre" ref={sectionRef} className={`sobre-section ${visivel ? 'sobre-visivel' : ''}`}>
       <div className="sobre-header">
         <h2 className="sobre-titulo">SOBRE NÓS</h2>
         <p className="sobre-desc">

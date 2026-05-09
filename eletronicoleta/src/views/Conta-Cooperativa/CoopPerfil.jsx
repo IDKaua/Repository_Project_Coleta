@@ -54,6 +54,8 @@ const CoopPerfil = () => {
     if (usuarioLogadoString) {
       const usuarioObj = JSON.parse(usuarioLogadoString);
       
+      if (usuarioObj.foto) setFoto(usuarioObj.foto);
+
       const enderecoCompleto = usuarioObj.rua 
         ? `${usuarioObj.rua || ''}, ${usuarioObj.numero || ''}, ${usuarioObj.bairro || ''}, ${usuarioObj.cidade || ''} - ${usuarioObj.estado || ''}`
         : '';
@@ -70,7 +72,23 @@ const CoopPerfil = () => {
 
   const handleFoto = (e) => {
     const file = e.target.files[0];
-    if (file) setFoto(URL.createObjectURL(file));
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setFoto(url);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        const usuarioLogadoString = localStorage.getItem("usuarioLogado");
+        if (usuarioLogadoString) {
+          const usuarioObj = JSON.parse(usuarioLogadoString);
+          usuarioObj.foto = base64String;
+          localStorage.setItem("usuarioLogado", JSON.stringify(usuarioObj));
+          window.dispatchEvent(new Event('usuarioAtualizado'));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleChange = (e) => {
