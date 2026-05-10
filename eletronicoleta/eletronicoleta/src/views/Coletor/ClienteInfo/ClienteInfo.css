@@ -1,14 +1,10 @@
 .cliente-card {
   background: #fff;
-  border-radius: 16px;
+  border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  padding: 50px;
-  flex-shrink: 0;
-  width: 500px; /* Largura fixa */
-  height: 40vh;
-  margin-left: 25px;
-  
+  padding: 24px;
+  width: 100px /* ← era 70% !important */
 }
 
 /* ===== HEADER DO COLETOR ===== */

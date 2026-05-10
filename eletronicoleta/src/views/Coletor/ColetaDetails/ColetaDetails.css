@@ -1,6 +1,6 @@
 .coleta-container {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   gap: 16px;
   width: 100%;      
 }
@@ -19,7 +19,7 @@
   padding: 20px;
   background: #f0faf4;
   border: 1px solid #d0e8dc;
-  width: 250px;      
+  width: 100%;      
 }
 
 .card-header {
@@ -61,6 +61,8 @@
 /* ===== RESUMO DA COLETA ===== */
 .resumo-card {
   padding: 20px;
+  width: 100%; /* Adicionado para garantir a responsividade */
+  box-sizing: border-box;
 }
 
 .resumo-title {
