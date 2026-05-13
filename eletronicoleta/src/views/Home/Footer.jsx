@@ -40,8 +40,8 @@ const Footer = () => {
           <div className="footer-redes">
             <p className="footer-centralizado">— Centralizado —</p>
             <div className="footer-icons">
-              <a href="https://www.instagram.com/flamengo/" aria-label="Instagram"><i className="fab fa-instagram" /></a>
-              <a href="https://www.facebook.com/FlamengoOficial/?locale=pt_BR" aria-label="Facebook"><i className="fab fa-facebook-f" /></a>
+              <a href="#" aria-label="Instagram"><i className="fab fa-instagram" /></a>
+              <a href="#" aria-label="Facebook"><i className="fab fa-facebook-f" /></a>
               <a href="#" aria-label="LinkedIn"><i className="fab fa-linkedin-in" /></a>
               <a href="#" aria-label="Email"><i className="far fa-envelope" /></a>
             </div>

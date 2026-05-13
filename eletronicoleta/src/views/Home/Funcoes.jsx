@@ -60,7 +60,7 @@ const Funcoes = () => {
   }, []);
 
   return (
-    <section id="funcoes" className="funcoes-section">
+    <section className="funcoes-section">
 
       {/* Título */}
       <h2 className="funcoes-titulo">FUNÇÕES</h2>

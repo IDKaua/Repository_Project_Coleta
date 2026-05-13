@@ -56,7 +56,6 @@ const Home = () => {
         </section>
 
         <section
-          id="servicos"
           ref={cardsRef}
           className={`cards-section ${isVisible ? 'fade-in-up' : 'hidden-cards'}`}
         >

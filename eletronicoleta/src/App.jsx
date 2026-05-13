@@ -21,7 +21,6 @@ function App() {
       <Header /> 
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/home" element={<Home />} />
         <Route path="/solicitar-coleta" element={<SolicitarColeta />} />
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Cadastro />} />
