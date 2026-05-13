@@ -48,7 +48,7 @@ const Parcerias = () => {
   const atual = grupos[grupoAtivo];
 
   return (
-    <section ref={sectionRef} className={`parcerias-section ${visivel ? 'parcerias-visivel' : ''}`}>
+    <section id="parceiros" ref={sectionRef} className={`parcerias-section ${visivel ? 'parcerias-visivel' : ''}`}>
       <h2 className="parcerias-titulo">Empresas parceiras da <span>EcoTech</span></h2>
       <p className="parcerias-desc">
         Com a <strong>EcoTech</strong>, os utilizadores podem acumular pontos com ações sustentáveis

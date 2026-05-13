@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 import "./SolicitarColeta.css";
 import "./FormColeta.css"
 
-import UploadFotos    from "./UploadFotos";
-import InfoLixo       from "./InfoLixo";
+import UploadFotos from "./UploadFotos";
+import InfoLixo from "./InfoLixo";
 import EnderecoColeta from "./EnderecoColeta";
-import Agendamento    from "./Agendamento";
+import Agendamento from "./Agendamento";
 
 const SolicitarColeta = () => {
   const navigate = useNavigate();
@@ -20,19 +20,19 @@ const SolicitarColeta = () => {
   }, [usuarioLogado, navigate]);
 
   const [formData, setFormData] = useState({
-    tipo_residuo:     "Computadores",
-    quantidade:       1,
-    porte:            "Pequeno",
+    tipo_residuo: "Computadores",
+    quantidade: 1,
+    porte: "Pequeno",
     nome_solicitante: "",
-    cep:              "",
-    rua:              "",
-    numero:           "",
-    bairro:           "",
-    cidade:           "",
-    uf:               "",
+    cep: "",
+    rua: "",
+    numero: "",
+    bairro: "",
+    cidade: "",
+    uf: "",
     ponto_referencia: "",
-    data:             "",
-    hora:             "",
+    data: "",
+    hora: "",
   });
 
   const [fotos, setFotos] = useState([]);
@@ -51,19 +51,19 @@ const SolicitarColeta = () => {
     if (!usuarioLogado) return;
 
     const dadosParaOJava = {
-      tipoResiduo:      formData.tipo_residuo,
-      quantidade:       formData.quantidade,
-      porte:            formData.porte,
-      nomeSolicitante:  formData.nome_solicitante,
-      cep:              formData.cep,
-      rua:              formData.rua,
-      numero:           formData.numero,
-      bairro:           formData.bairro,
-      cidade:           formData.cidade,
-      uf:               formData.uf,
-      pontoReferencia:  formData.ponto_referencia,
-      dataAgendamento:  formData.data,
-      horaAgendamento:  formData.hora,
+      tipoResiduo: formData.tipo_residuo,
+      quantidade: formData.quantidade,
+      porte: formData.porte,
+      nomeSolicitante: formData.nome_solicitante,
+      cep: formData.cep,
+      rua: formData.rua,
+      numero: formData.numero,
+      bairro: formData.bairro,
+      cidade: formData.cidade,
+      uf: formData.uf,
+      pontoReferencia: formData.ponto_referencia,
+      dataAgendamento: formData.data,
+      horaAgendamento: formData.hora,
       descricao: `Coleta de ${formData.quantidade} item(ns) porte ${formData.porte}.`,
     };
 
@@ -108,7 +108,7 @@ const SolicitarColeta = () => {
 
             <div className="coluna-direita">
               <EnderecoColeta formData={formData} handleChange={handleChange} />
-              <Agendamento    formData={formData} handleChange={handleChange} />
+              <Agendamento formData={formData} handleChange={handleChange} />
             </div>
           </div>
 

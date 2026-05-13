@@ -10,6 +10,7 @@
   border-top: 1px solid #dde3dd;
   padding: 52px 0 36px;
   margin-top: 60px;
+  z-index: 10;
 }
 
 .footer-container {

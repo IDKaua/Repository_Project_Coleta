@@ -8,7 +8,7 @@ html {
 .main-wrapper {
   min-height: 100vh;
   width: 100%;
-  overflow: hidden; 
+  overflow: clip; 
   position: relative;
   box-sizing: border-box; 
   padding-top: 80px;

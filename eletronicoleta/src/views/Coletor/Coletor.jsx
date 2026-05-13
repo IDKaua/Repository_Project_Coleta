@@ -17,7 +17,6 @@ function Coletor() {
         <div className="coletor-right">
           <ClienteInfo />
           <ColetaDetails />
-          <Instrucoes />
         </div>
       </div>
     </div>
