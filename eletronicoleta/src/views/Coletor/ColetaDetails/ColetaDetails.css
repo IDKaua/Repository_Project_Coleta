@@ -1,10 +1,9 @@
 .coleta-container {
   display: flex;
-  flex-direction:initial;
+  flex-direction: column;
   gap: 16px;
-  margin-right: auto;
-  width: 400px;
-  
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* ===== CARD BASE ===== */
@@ -13,54 +12,97 @@
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  flex-shrink: 0;
-  width: 65%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* ===== PREVISÃO DE CHEGADA ===== */
+/* ===== PREVISÃO / INSTRUÇÕES ===== */
 .previsao-card {
   padding: 20px;
   background: #f0faf4;
   border: 1px solid #d0e8dc;
-  margin-left: -70px;
-  width: 250px;
-  
+  transition: background 0.5s ease, border-color 0.5s ease;
+}
+
+/* Estado de sucesso: fundo verde vibrante */
+.previsao-card--sucesso {
+  background: linear-gradient(135deg, #2d8659 0%, #1e6b47 100%);
+  border-color: #2d8659;
+}
+
+.previsao-card--sucesso .card-title {
+  color: #fff;
+}
+
+.previsao-card--sucesso .header-icon {
+  color: #fff;
 }
 
 .card-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .header-icon {
-  font-size: 20px;
+  font-size: 18px;
   color: #2d8659;
+  transition: color 0.4s ease;
 }
 
 .card-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: #2d8659;
   margin: 0;
+  letter-spacing: 0.5px;
+  transition: color 0.4s ease;
 }
 
 .previsao-content {
   text-align: center;
 }
 
-.tempo {
-  font-size: 32px;
-  font-weight: 700;
-  color: #2d8659;
-  margin: 0 0 6px 0;
+/* Exibição normal */
+.status {
+  font-size: 12px;
+  color: #666;
+  margin: 0 0 4px 0;
 }
 
-.status {
-  font-size: 13px;
-  color: #666;
+.tempo {
+  font-size: 30px;
+  font-weight: 700;
+  color: #2d8659;
   margin: 0;
+}
+
+/* Exibição de sucesso */
+.sucesso-mensagem {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 6px 0;
+  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.sucesso-sub {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  animation: popIn 0.5s 0.1s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 /* ===== RESUMO DA COLETA ===== */
@@ -69,10 +111,10 @@
 }
 
 .resumo-title {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: #999;
-  margin: 0 0 16px 0;
+  margin: 0 0 14px 0;
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
@@ -95,11 +137,13 @@
   font-size: 18px;
   flex-shrink: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  padding-top: 2px;
 }
 
 .resumo-content {
   flex: 1;
+  min-width: 0;
 }
 
 .resumo-label {
@@ -116,21 +160,31 @@
   color: #333;
   margin: 0;
   font-weight: 600;
+  word-break: break-word;
+}
+
+/* Status dinâmico */
+.status-em-rota {
+  color: #4a90e2;
+}
+
+.status-concluido {
+  color: #2d8659;
 }
 
 /* ===== RESPONSIVO ===== */
 @media (max-width: 768px) {
-  .coleta-container {
-    gap: 16px;
-  }
-
   .previsao-card,
   .resumo-card {
     padding: 16px;
   }
 
   .tempo {
-    font-size: 28px;
+    font-size: 26px;
+  }
+
+  .sucesso-mensagem {
+    font-size: 17px;
   }
 
   .resumo-item {

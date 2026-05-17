@@ -14,58 +14,70 @@
   padding: 30px 20px;
   min-height: 100vh;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  box-sizing: border-box;
 }
 
 .coletor-title {
   text-align: center;
   color: var(--text-dark);
-  font-size: 32px;
-  font-weight: 600;
-  margin: 0 0 30px 0;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 24px 0;
   letter-spacing: 2px;
 }
 
 /* ===== LAYOUT DE CONTEÚDO ===== */
+/* Esquerda: 3 cards | Direita: mapa */
 .coletor-content {
   display: grid;
-  grid-template-columns: 1.3fr 1fr;
+  grid-template-columns: 380px 1fr;
   gap: 20px;
   max-width: 1300px;
   margin: 0 auto;
   align-items: start;
 }
 
-.coletor-right {
+/* Coluna esquerda: empilha os 3 cards */
+.coletor-left {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 16px;
+  min-width: 0;
 }
 
-/* ===== RESPONSIVO ===== */
+/* ===== RESPONSIVO TABLET ===== */
 @media (max-width: 1024px) {
   .coletor-content {
-    grid-template-columns: 1.2fr 1fr;
-    gap: 15px;
+    grid-template-columns: 320px 1fr;
+    gap: 16px;
   }
-  
+
   .coletor-title {
-    font-size: 28px;
-    margin-bottom: 20px;
+    font-size: 24px;
   }
 }
 
+/* ===== RESPONSIVO MOBILE ===== */
 @media (max-width: 768px) {
   .coletor-container {
-    padding: 20px 15px;
+    padding: 16px 12px;
   }
-  
+
+  .coletor-title {
+    font-size: 20px;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+
+  /* No mobile: mapa em cima, cards embaixo */
   .coletor-content {
     grid-template-columns: 1fr;
-    gap: 15px;
+    grid-template-rows: auto auto;
+    gap: 14px;
   }
-  
-  .coletor-title {
-    font-size: 24px;
-    margin-bottom: 15px;
+
+  /* MapCard fica primeiro no mobile via order */
+  .coletor-left {
+    order: 2;
   }
 }

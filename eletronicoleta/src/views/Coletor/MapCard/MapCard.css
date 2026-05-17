@@ -1,107 +1,347 @@
+/* ===== CARD DO MAPA ===== */
 .map-card {
   position: relative;
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
   overflow: hidden;
   height: 560px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.map-svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-/* ===== ANIMAÇÃO DO MARCADOR ===== */
-.location-pin {
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    filter: drop-shadow(0 0 0 rgba(45, 134, 89, 0.4));
-  }
-  50% {
-    filter: drop-shadow(0 0 8px rgba(45, 134, 89, 0.6));
-  }
-}
-
-/* ===== LABEL ANIMADO ===== */
-.label-box {
-  animation: slideDown 0.5s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ===== CONTROLES DO MAPA ===== */
-.map-controls {
-  position: absolute;
-  right: 15px;
-  bottom: 15px;
+  min-height: 420px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  z-index: 10;
 }
 
-.control-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  cursor: pointer;
+/* O MapContainer precisa de height explícita */
+.leaflet-map-container {
+  width: 100%;
+  flex: 1;
+  border-radius: 16px;
+  min-height: 0;
+}
+
+/* Quando o card está em fullscreen, ocupa a tela toda */
+.map-card:fullscreen {
+  border-radius: 0;
+  height: 100vh;
+  width: 100vw;
+}
+
+.map-card:fullscreen .leaflet-map-container {
+  border-radius: 0;
+}
+
+/* ===== OVERLAY DE PERMISSÃO / ERRO ===== */
+.map-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 16px;
+}
+
+.map-overlay--error {
+  background: rgba(255, 245, 245, 0.93);
+}
+
+.map-permission-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 28px 32px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  max-width: 280px;
+  text-align: center;
+}
+
+.map-permission-icon {
+  font-size: 38px;
+}
+
+.map-permission-text {
+  font-size: 14px;
+  color: #444;
+  margin: 0;
+  line-height: 1.55;
+}
+
+/* ===== SPINNER ===== */
+.map-spinner {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid #d0e8dc;
+  border-top-color: #2d8659;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  flex-shrink: 0;
+}
+
+.map-spinner--sm {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== ÍCONES CUSTOMIZADOS (DivIcon) ===== */
+
+/* Caminhão - motorista */
+.map-icon--truck {
+  width: 48px;
+  height: 48px;
+  background: #4a90e2;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  border: 3px solid #fff;
+  box-shadow: 0 3px 12px rgba(74, 144, 226, 0.45);
+  transition: transform 0.3s ease;
+}
+
+/* Avatar - cliente */
+.map-icon--client {
+  width: 48px;
+  height: 48px;
+  background: #2d8659;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #fff;
+  box-shadow: 0 3px 12px rgba(45, 134, 89, 0.45);
+  position: relative;
+}
+
+/* Pontinha triangular do balão do cliente */
+.map-icon-pin {
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 12px solid #2d8659;
+}
+
+.map-icon-initials {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+/* ===== BADGE DE STATUS (canto sup. esq.) ===== */
+.map-badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #d0e8dc;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2d8659;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+  transition: background 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+  max-width: calc(100% - 100px); /* não sobrepõe o botão de tela cheia */
+}
+
+.map-badge--success {
+  background: #2d8659;
+  color: #fff;
+  border-color: #2d8659;
+}
+
+.map-badge--sim {
+  background: #4a90e2;
+  color: #fff;
+  border-color: #4a90e2;
+}
+
+.map-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+  animation: blink 1.4s infinite;
+}
+
+.map-badge--success .map-badge-dot,
+.map-badge--sim .map-badge-dot {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.map-badge--success .map-badge-dot {
+  animation: none;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
+}
+
+/* ===== BOTÃO TELA CHEIA (canto sup. dir.) ===== */
+.map-btn-fullscreen {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #e0e0e0;
+  cursor: pointer;
   font-size: 18px;
-  font-weight: bold;
-  color: #666;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  color: #444;
 }
 
-.control-btn:hover {
-  background: #f5f5f5;
-  transform: scale(1.05);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+.map-btn-fullscreen:hover {
+  background: #f0f8f4;
+  border-color: #2d8659;
+  color: #2d8659;
+  transform: scale(1.08);
 }
 
-.control-btn:active {
+.map-btn-fullscreen:active {
   transform: scale(0.95);
 }
 
-.control-btn.compass {
-  font-size: 20px;
+/* ===== BARRA DE SIMULAÇÃO (inferior) ===== */
+.map-sim-bar {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* ===== RESPONSIVO ===== */
+.map-sim-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 20px;
+  background: #4a90e2;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(74, 144, 226, 0.4);
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.map-sim-btn:hover {
+  background: #3a7bd5;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 16px rgba(74, 144, 226, 0.5);
+}
+
+.map-sim-btn:active {
+  transform: translateY(0);
+}
+
+.map-sim-btn--stop {
+  background: #e05252;
+  box-shadow: 0 3px 12px rgba(224, 82, 82, 0.35);
+}
+
+.map-sim-btn--stop:hover {
+  background: #c94040;
+  box-shadow: 0 5px 16px rgba(224, 82, 82, 0.45);
+}
+
+/* ===== RESPONSIVO TABLET ===== */
+@media (max-width: 1024px) {
+  .map-card {
+    height: 480px;
+  }
+}
+
+/* ===== RESPONSIVO MOBILE ===== */
 @media (max-width: 768px) {
   .map-card {
-    height: 350px;
+    height: 360px;
+    min-height: 300px;
+    border-radius: 14px;
+    order: 1; /* mapa fica no topo no mobile */
   }
-  
-  .map-controls {
-    right: 10px;
+
+  .leaflet-map-container {
+    border-radius: 14px;
+  }
+
+  .map-badge {
+    font-size: 11px;
+    padding: 5px 11px;
+    top: 10px;
+    left: 10px;
+  }
+
+  .map-btn-fullscreen {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+    top: 8px;
+    right: 8px;
+  }
+
+  .map-sim-bar {
     bottom: 10px;
   }
-  
-  .control-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 16px;
+
+  .map-sim-btn {
+    font-size: 12px;
+    padding: 8px 16px;
+  }
+
+  .map-permission-box {
+    padding: 20px;
+    max-width: 240px;
+  }
+
+  .map-icon--truck,
+  .map-icon--client {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .map-icon-initials {
+    font-size: 13px;
   }
 }

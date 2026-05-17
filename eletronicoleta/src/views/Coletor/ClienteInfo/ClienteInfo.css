@@ -2,86 +2,134 @@
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  padding: 50px;
-  flex-shrink: 0;
-  width: 500px; /* Largura fixa */
-  height: 40vh;
-  margin-left: 25px;
-  
+  padding: 18px 20px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-/* ===== HEADER DO COLETOR ===== */
-.coletor-header {
+/* ── Cabeçalho ───────────────────────────────────────────────────────── */
+.cliente-card-header {
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 12px;
+}
+
+.cliente-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2d8659;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+/* ── Perfil ──────────────────────────────────────────────────────────── */
+.cliente-perfil {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 16px;
-  position: relative;
+  gap: 12px;
 }
 
-.avatar {
-  width: 56px;
-  height: 56px;
+.cliente-avatar {
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  background: #d0d0d0;
+  background: linear-gradient(135deg, #2d8659, #4ab87a);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  font-weight: 700;
-  color: #666;
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
   flex-shrink: 0;
+  letter-spacing: 0.5px;
 }
 
-.coletor-info {
+.cliente-dados {
   flex: 1;
+  min-width: 0;
 }
 
-.coletor-nome {
+.cliente-nome {
   font-size: 16px;
   font-weight: 700;
-  color: #333;
-  margin: 0 0 4px 0;
+  color: #222;
+  margin: 0 0 3px 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.coletor-veiculo {
-  font-size: 13px;
+.cliente-tipo {
+  font-size: 12px;
   color: #888;
   margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-/* ===== RATING ===== */
-.rating {
+/* Badge de status */
+.cliente-status {
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: #fef3c7;
-  padding: 6px 10px;
-  border-radius: 6px;
-  flex-shrink: 0;
-}
-
-.star {
-  font-size: 14px;
-}
-
-.rating-value {
-  font-size: 13px;
+  gap: 5px;
+  background: #fff8e7;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 11px;
   font-weight: 700;
-  color: #b45309;
+  color: #92400e;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
-/* ===== BOTÃO CONVERSAR ===== */
-.btn-conversar {
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f59e0b;
+  animation: blink-status 1.6s infinite;
+}
+
+@keyframes blink-status {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+/* ── Linhas de informação (endereço, telefone) ───────────────────────── */
+.cliente-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.info-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+
+.info-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin: 0 0 2px 0;
+}
+
+.info-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ── Botão ───────────────────────────────────────────────────────────── */
+.btn-ligar {
   width: 100%;
-  padding: 12px;
+  padding: 11px;
   background: #2d8659;
   color: #fff;
   border: none;
@@ -89,33 +137,35 @@
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
-  letter-spacing: 0.5px;
+  transition: all 0.25s ease;
+  letter-spacing: 0.4px;
+  margin-top: 2px;
 }
 
-.btn-conversar:hover {
+.btn-ligar:hover {
   background: #215a44;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(45, 134, 89, 0.25);
 }
 
-.btn-conversar:active {
+.btn-ligar:active {
   transform: translateY(0);
 }
 
-/* ===== RESPONSIVO ===== */
+/* ── Responsivo ──────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .cliente-card {
-    padding: 16px;
+    padding: 14px 16px;
+    gap: 12px;
   }
 
-  .avatar {
-    width: 48px;
-    height: 48px;
-    font-size: 20px;
-  }
-  
-  .coletor-nome {
+  .cliente-nome {
     font-size: 15px;
+  }
+
+  .cliente-avatar {
+    width: 42px;
+    height: 42px;
+    font-size: 14px;
   }
 }
