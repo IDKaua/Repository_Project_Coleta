@@ -96,7 +96,7 @@ O projeto está estruturado em duas partes principais: Back-end (Java/Maven) e F
 Primeiro, faça o clone do projeto para a sua máquina:
 
 ```bash
-git clone [https://github.com/IDKaua/Repository_Project_Coleta.git](https://github.com/IDKaua/Repository_Project_Coleta.git)
+git clone https://github.com/IDKaua/Repository_Project_Coleta.git
 cd Repository_Project_Coleta
 ```
 
