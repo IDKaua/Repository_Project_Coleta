@@ -96,11 +96,15 @@ O projeto está estruturado em duas partes principais: Back-end (Java/Maven) e F
 Primeiro, faça o clone do projeto para a sua máquina:
 
 ```bash
-git clone https://github.com/IDKaua/Repository_Project_Coleta.git (https://github.com/IDKaua/Repository_Project_Coleta.git)
+git clone [https://github.com/IDKaua/Repository_Project_Coleta.git](https://github.com/IDKaua/Repository_Project_Coleta.git)
 cd Repository_Project_Coleta
+```
 
-Rodando o Back
+### 2. Rodando o Back-end
 
+Abra um terminal, navegue até o diretório do back-end e inicie a aplicação:
+
+```bash
 # Entre na pasta do back-end
 cd backend
 
@@ -109,12 +113,81 @@ mvn clean install
 
 # Inicie o servidor (comando padrão para projetos Spring Boot)
 mvn spring-boot:run
+```
+O servidor da API estará rodando por padrão em `http://localhost:8080` (ajuste se necessário).
 
+### 3. Rodando o Front-end
+
+Abra um **novo terminal**, navegue até o diretório do front-end e inicie a interface:
+
+```bash
 # Entre na pasta do front-end
-cd eletronicoleta
+cd eletronicocoleta
 
 # Instale as dependências
 npm install
 
-# Inicie a aplicação em modo de desenvolvimento (Vite)
+# Inicie a aplicação em modo de desenvolvimento
 npm run dev
+```
+O front-end estará disponível no seu navegador em `http://localhost:5173` (padrão Vite) ou `http://localhost:3000`.
+
+---
+
+## 🗺️ Fluxos de Usuário
+
+O sistema possui três tipos principais de usuários, cada um com jornadas e permissões específicas de acesso.
+
+### 👤 1. Fluxo do Cliente (Usuário)
+
+```text
+[Início/Home] ──> [Serviços] ──> [Solicitar Coleta] (Requer Autenticação)
+                                       │
+                                       ├──> Se não tem conta: [Cadastro]
+                                       └──> Se já tem conta:  [Login]
+```
+
+**Passo a Passo:**
+1. **Início/Home:** Página Inicial da plataforma.
+2. **Serviços:** Listagem e vitrine de serviços disponíveis.
+3. **Autenticação:** Gatilho ativado pelos botões "Acessar", "Área do Usuário" ou ao tentar solicitar coleta.
+   * **3.1 Login:** Acesso para usuários já registrados.
+   * **3.2 Cadastro:** Criação de uma nova conta de cliente.
+4. **Solicitar Coleta:** Acesso liberado à funcionalidade principal somente após a conclusão do passo 3.1 ou 3.2.
+
+### 🏢 2. Fluxo da Cooperativa
+
+```text
+[Início/Home] ──> [Serviços] ──> [Painel da Cooperativa] (Requer Autenticação)
+                                       │
+                                       ├──> [Login da Cooperativa]
+                                       └──> [Cadastro da Cooperativa] (Selecionar modo Cooperativa)
+```
+
+**Passo a Passo:**
+1. **Início/Home:** Página Inicial.
+2. **Serviços:** Listagem de serviços.
+3. **Autenticação da Cooperativa:** Etapa obrigatória para acessar as ferramentas de gestão.
+   * **3.1 Cadastro:** Criação de conta com a obrigatoriedade de selecionar o "Modo Cooperativa" no formulário.
+   * **3.2 Login:** Acesso para cooperativas já registradas.
+4. **Painel da Cooperativa:** Área restrita e dashboard de gestão, liberada somente após o login com perfil de cooperativa.
+
+### 🚚 3. Fluxo do Coletor
+
+```text
+[Início/Home] ──> [Acessar] ──> [Portal do Coletor]
+                                      │
+                                      └──> [Login (Digita o CPF)]
+                                             │
+                                             ├──> CPF NÃO cadastrado ──> [Mensagem de Erro / Bloqueio]
+                                             └──> CPF CADASTRADO     ──> [Tela do Coletor (Área Restrita)]
+```
+
+**Passo a Passo:**
+1. **Início/Home:** Página Inicial.
+2. **Acessar:** Navegação para a área de login.
+3. **Autenticação do Coletor (`/login/coletor`):**
+   * **Regra de Input:** Campo único ou principal exclusivo para inserção do CPF.
+   * **Validação (Back-end):** O sistema consulta a base de dados de coletores que foram pré-vinculados/cadastrados pela Cooperativa.
+   * **Tratamento de Exceção:** Se o CPF inserido não existir na base de dados, o sistema bloqueia o acesso e exibe o aviso: *"CPF não autorizado ou erro"*.
+4. **Tela do Coletor (Área Restrita):** Acesso liberado após validação. Exibe as funcionalidades específicas para o trabalho do coletor, como informações do endereço do cliente, detalhes da coleta agendada e rotas.
