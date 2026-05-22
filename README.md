@@ -109,10 +109,10 @@ Abra um terminal, navegue até o diretório do back-end e inicie a aplicação:
 cd backend
 
 # Baixe as dependências e compile o projeto
-mvn clean install
+./mvnw clean install
 
 # Inicie o servidor (comando padrão para projetos Spring Boot)
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 O servidor da API estará rodando por padrão em `http://localhost:8080` (ajuste se necessário).
 
