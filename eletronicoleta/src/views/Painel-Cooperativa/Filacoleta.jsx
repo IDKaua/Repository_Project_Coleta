@@ -2,7 +2,7 @@ import React, { forwardRef } from "react";
 
 // Utilizamos forwardRef para permitir que o pai (PainelCooperativa) 
 // controle o scroll até este elemento específico
-const FilaColetas = forwardRef(({ coletas, onSelectColeta }, ref) => (
+const FilaColetas = forwardRef(({ coletas, onSelectColeta, onFinalizar }, ref) => (
   <section className="painel-card" ref={ref}>
     <div className="card-header-tag">
       <i className="fas fa-truck"></i>
@@ -24,12 +24,12 @@ const FilaColetas = forwardRef(({ coletas, onSelectColeta }, ref) => (
           {coletas.map((c) => (
             <tr key={c.id}>
               <td>
-                <span className="id-badge">{c.id}</span>
+                <span className="id-badge">#{c.id}</span>
               </td>
               <td>{c.tipoEquipamento}</td>
               <td>{c.quantidade}</td>
               <td>
-                <span className={`porte-tag porte-${c.porte.toLowerCase()}`}>
+                <span className={`porte-tag porte-${c.porte?.toLowerCase()}`}>
                   {c.porte}
                 </span>
               </td>
@@ -42,9 +42,17 @@ const FilaColetas = forwardRef(({ coletas, onSelectColeta }, ref) => (
                   >
                     Atribuir Coletor
                   </button>
+                ) : c.status === "Em andamento" ? (
+                  <button
+                    className="btn-novo"
+                    onClick={() => onFinalizar(c.id)}
+                    style={{ background: "#f39c12" }}
+                  >
+                    Finalizar Coleta
+                  </button>
                 ) : (
-                  <span className="porte-tag porte-pequeno">
-                    {c.status} — {c.coletorAtribuido}
+                  <span className="porte-tag porte-pequeno" style={{ background: "#2ecc71", color: "#fff" }}>
+                    {c.status}
                   </span>
                 )}
               </td>

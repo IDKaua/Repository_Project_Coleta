@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import ServiceCard from '../../components/ServiceCard/ServiceCard';
-import Campanha from './Campanha';
-import Parcerias from './Parcerias';
-import Funcoes from './Funcoes';       // ← novo import
-import SobreNos from './SobreNos';
-import Footer from './Footer';
-import './Home.css';
+import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import ServiceCard from "../../components/ServiceCard/ServiceCard";
+import Campanha from "./Campanha";
+import Parcerias from "./Parcerias";
+import Funcoes from "./Funcoes"; // ← novo import
+import SobreNos from "./SobreNos";
+import Footer from "./Footer";
+import "./Home.css";
 
 const Home = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -18,7 +18,7 @@ const Home = () => {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => setIsVisible(entry.isIntersecting),
-      { threshold: 0.15 }
+      { threshold: 0.15 },
     );
     if (cardsRef.current) observer.observe(cardsRef.current);
     return () => observer.disconnect();
@@ -32,7 +32,7 @@ const Home = () => {
           observer.disconnect();
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.2 },
     );
     if (campanhasRef.current) observer.observe(campanhasRef.current);
     return () => observer.disconnect();
@@ -58,14 +58,13 @@ const Home = () => {
         <section
           id="servicos"
           ref={cardsRef}
-          className={`cards-section ${isVisible ? 'fade-in-up' : 'hidden-cards'}`}
+          className={`cards-section ${isVisible ? "fade-in-up" : "hidden-cards"}`}
         >
           <div className="cards-grid">
             <ServiceCard
               tipo="USUÁRIO"
               icone="fa-house-user"
               desc="Solicite coletas agora."
-              onClick={() => navigate('/solicitar-coleta')}
             />
             <ServiceCard
               tipo="COOPERATIVA"
@@ -76,7 +75,6 @@ const Home = () => {
               tipo="COLETOR"
               icone="fa-truck-fast"
               desc="Veja suas rotas."
-              onClick={() => navigate('/conta-cooperativa')}
             />
           </div>
         </section>
@@ -87,7 +85,9 @@ const Home = () => {
         <Funcoes />
 
         <section id="campanha" ref={campanhasRef} className="campanhas-section">
-          <h2 className={`campanhas-title ${campanhasVisible ? 'title-visible' : ''}`}>
+          <h2
+            className={`campanhas-title ${campanhasVisible ? "title-visible" : ""}`}
+          >
             CAMPANHAS
           </h2>
           <Campanha />

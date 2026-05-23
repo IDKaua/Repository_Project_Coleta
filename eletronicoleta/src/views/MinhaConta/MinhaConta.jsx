@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import pontosService from "../../services/pontosService";
 import "./MinhaConta.css";
 
 import MeuPerfil from "./MeuPerfil";
@@ -15,6 +17,49 @@ const menuItems = [
 const MinhaConta = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("perfil");
+  const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+
+  useEffect(() => {
+    if (!usuarioLogado) return;
+
+    const verificarColetasFinalizadas = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/api/coletas/all");
+        if (!response.ok) return;
+
+        const coletas = await response.json();
+        
+        // Filtra coletas que:
+        // 1. Estão com status COLETADO
+        // 2. Pertencem a este usuário
+        // 3. Ainda não foram pontuadas no frontend
+        const coletasParaPontuar = coletas.filter(c => 
+          c.status === "COLETADO" && 
+          c.morador?.id === usuarioLogado.id &&
+          !pontosService.jaFoiPontuada(c.id)
+        );
+
+        coletasParaPontuar.forEach(coleta => {
+          const pontosGanhos = pontosService.creditarPontos(coleta);
+          if (pontosGanhos > 0) {
+            toast.success(`♻️ Coleta #${coleta.id} concluída! Você ganhou +${pontosGanhos} pontos`, {
+              icon: "🌟"
+            });
+          }
+        });
+      } catch (error) {
+        console.error("Erro ao verificar pontos:", error);
+      }
+    };
+
+    // Verifica imediatamente ao carregar
+    verificarColetasFinalizadas();
+
+    // Polling a cada 15 segundos
+    const interval = setInterval(verificarColetasFinalizadas, 15000);
+
+    return () => clearInterval(interval);
+  }, [usuarioLogado?.id]);
 
   const renderContent = () => {
     switch (activeTab) {

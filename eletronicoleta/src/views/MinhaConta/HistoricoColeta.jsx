@@ -1,50 +1,101 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import pontosService from "../../services/pontosService";
 
-const HISTORICO = [
-  { data: "03/07/2023", itens: "1 Itens", status: "Entregue",    pontos: "1.250 PTS", icone: "fas fa-check-circle",  cor: "status-entregue"  },
-  { data: "06/07/2023", itens: "1 Itens", status: "Em Trânsito", pontos: "20 PTS",    icone: "fas fa-truck",         cor: "status-transito"  },
-  { data: "03/07/2023", itens: "1 Itens", status: "Cancelado",   pontos: "5 PTS",     icone: "fas fa-times",         cor: "status-cancelado" },
-  { data: "06/07/2023", itens: "1 Itens", status: "Cancelado",   pontos: "5 PTS",     icone: "fas fa-times",         cor: "status-cancelado" },
-  { data: "03/07/2023", itens: "1 Itens", status: "Entregue",    pontos: "3 PTS",     icone: "fas fa-check-circle",  cor: "status-entregue"  },
-  { data: "03/07/2023", itens: "1 Itens", status: "Entregue",    pontos: "1.250 PTS", icone: "fas fa-check-circle",  cor: "status-entregue"  },
-  { data: "03/07/2023", itens: "1 Itens", status: "Cancelado",   pontos: "10 PTS",    icone: "fas fa-times",         cor: "status-cancelado" },
-  { data: "06/07/2023", itens: "1 Itens", status: "Em Trânsito", pontos: "3 PTS",     icone: "fas fa-truck",         cor: "status-transito"  },
-  { data: "03/07/2023", itens: "1 Itens", status: "Entregue",    pontos: "1.250 PTS", icone: "fas fa-check-circle",  cor: "status-entregue"  },
-  { data: "06/07/2023", itens: "1 Itens", status: "Cancelado",   pontos: "5 PTS",     icone: "fas fa-times-circle",  cor: "status-cancelado" },
-  { data: "03/07/2023", itens: "1 Itens", status: "Cancelado",   pontos: "5 PTS",     icone: "fas fa-times",         cor: "status-cancelado" },
-];
+const HistoricoColetas = () => {
+  const [historico, setHistorico] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
 
-const HistoricoColetas = () => (
-  <div className="conta-card historico-card">
-    <h3 className="dados-titulo">Histórico de Coletas</h3>
+  useEffect(() => {
+    const buscarHistorico = async () => {
+      if (!usuarioLogado) return;
+      try {
+        const response = await fetch("http://localhost:8080/api/coletas/all");
+        if (response.ok) {
+          const dados = await response.json();
+          // Filtra coletas deste usuário
+          const coletasUsuario = dados.filter(c => c.morador?.id === usuarioLogado.id);
+          
+          // Mapeia para o formato da tabela
+          const formatado = coletasUsuario.map(c => {
+            let statusLabel = "Pendente";
+            let statusCor = "status-aguardando";
+            let icone = "fas fa-clock";
 
-    <div className="table-wrapper">
-      <table className="historico-table">
-        <thead>
-          <tr>
-            <th>Data <i className="fas fa-sort-down"></i></th>
-            <th>Itens</th>
-            <th>Status <i className="fas fa-sort"></i></th>
-            <th>Pontos</th>
-          </tr>
-        </thead>
-        <tbody>
-          {HISTORICO.map((row, i) => (
-            <tr key={i}>
-              <td>{row.data}</td>
-              <td>| {row.itens}</td>
-              <td>
-                <span className={`status-badge ${row.cor}`}>
-                  <i className={row.icone}></i> {row.status}
-                </span>
-              </td>
-              <td className="pontos-col">{row.pontos}</td>
+            if (c.status === "EM ANDAMENTO") {
+              statusLabel = "Em Trânsito";
+              statusCor = "status-transito";
+              icone = "fas fa-truck";
+            } else if (c.status === "COLETADO") {
+              statusLabel = "Entregue";
+              statusCor = "status-entregue";
+              icone = "fas fa-check-circle";
+            }
+
+            // Calcula pontos para exibir (mesmo que ainda não tenha sido "processado" pelo polling)
+            const pts = c.status === "COLETADO" ? pontosService.calcularPontos(c) : 0;
+
+            return {
+              id: c.id,
+              data: c.dataAgendamento || "N/A",
+              itens: c.tipoResiduo || "Resíduos",
+              status: statusLabel,
+              cor: statusCor,
+              icone: icone,
+              pontos: pts > 0 ? `+${pts} PTS` : "0 PTS"
+            };
+          });
+
+          setHistorico(formatado.reverse()); // Mais recentes primeiro
+        }
+      } catch (error) {
+        console.error("Erro ao buscar histórico:", error);
+      } finally {
+        setCarregando(setCarregando(false));
+      }
+    };
+
+    buscarHistorico();
+  }, [usuarioLogado?.id]);
+
+  return (
+    <div className="conta-card historico-card">
+      <h3 className="dados-titulo">Histórico de Coletas</h3>
+
+      <div className="table-wrapper">
+        <table className="historico-table">
+          <thead>
+            <tr>
+              <th>Data <i className="fas fa-sort-down"></i></th>
+              <th>Itens</th>
+              <th>Status <i className="fas fa-sort"></i></th>
+              <th>Pontos</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {carregando ? (
+              <tr><td colSpan="4" style={{ textAlign: "center", padding: "20px" }}>Carregando histórico...</td></tr>
+            ) : historico.length > 0 ? (
+              historico.map((row, i) => (
+                <tr key={i}>
+                  <td>{row.data}</td>
+                  <td>| {row.itens}</td>
+                  <td>
+                    <span className={`status-badge ${row.cor}`}>
+                      <i className={row.icone}></i> {row.status}
+                    </span>
+                  </td>
+                  <td className="pontos-col">{row.pontos}</td>
+                </tr>
+              ))
+            ) : (
+              <tr><td colSpan="4" style={{ textAlign: "center", padding: "20px" }}>Nenhuma coleta encontrada.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default HistoricoColetas;

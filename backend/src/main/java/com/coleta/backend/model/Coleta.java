@@ -24,6 +24,10 @@ public class Coleta {
     @JoinColumn(name = "usuario_id")
     private Usuario morador; // Relacionamento com o usuário que solicitou a coleta
 
+    @ManyToOne
+    @JoinColumn(name = "coletor_id")
+    private Coletor coletor; // Relacionamento com o coletor que aceitou/realiza a coleta
+
     // Getters e Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -35,6 +39,8 @@ public class Coleta {
     public void setTelefone(String telefone) { this.telefone = telefone; }
     public Usuario getMorador() { return morador; }
     public void setMorador(Usuario morador) { this.morador = morador; }
+    public Coletor getColetor() { return coletor; }
+    public void setColetor(Coletor coletor) { this.coletor = coletor; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public String getTipoResiduo() { return tipoResiduo; }

@@ -1,16 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
-
-const EXTRATO_MOCK = [
-  { data: "03/07/2023", descricao: "Coleta realizada",  pontos: "+250 PTS" },
-  { data: "06/07/2023", descricao: "Coleta realizada",  pontos: "+500 PTS" },
-  { data: "10/07/2023", descricao: "Bônus de cadastro", pontos: "+500 PTS" },
-];
+import pontosService from "../../services/pontosService";
 
 const MeuPerfil = () => {
   const fileInputRef = useRef(null);
 
   const [foto, setFoto] = useState(null);
   const [mostrarExtrato, setMostrarExtrato] = useState(false);
+  const [saldo, setSaldo] = useState(pontosService.getPontos());
+  const [extrato, setExtrato] = useState(pontosService.getExtrato());
 
   const [form, setForm] = useState({
     nome: "",
@@ -39,6 +36,19 @@ const MeuPerfil = () => {
         cpf: formatarCPF(usuarioObj.documento || ""), // Puxa do documento salvo no login
       });
     }
+
+    const atualizarDados = () => {
+      setSaldo(pontosService.getPontos());
+      setExtrato(pontosService.getExtrato());
+    };
+
+    window.addEventListener("pontosAtualizados", atualizarDados);
+    window.addEventListener("storage", atualizarDados);
+
+    return () => {
+      window.removeEventListener("pontosAtualizados", atualizarDados);
+      window.removeEventListener("storage", atualizarDados);
+    };
   }, []);
 
   // ── Foto ─────────────────────────────────────────────────
@@ -149,7 +159,7 @@ const MeuPerfil = () => {
         <i className="fas fa-star"></i>
         <div>
           <span className="saldo-label">SALDO DE PONTOS</span>
-          <span className="saldo-valor">1.250 PTS</span>
+          <span className="saldo-valor">{pontosService.formatarPontos(saldo)}</span>
         </div>
         <button className="btn-extrato" onClick={() => setMostrarExtrato(!mostrarExtrato)}>
           {mostrarExtrato ? "Fechar" : "Ver Extrato"}
@@ -165,13 +175,21 @@ const MeuPerfil = () => {
               <tr><th>Data</th><th>Descrição</th><th>Pontos</th></tr>
             </thead>
             <tbody>
-              {EXTRATO_MOCK.map((item, i) => (
-                <tr key={i}>
-                  <td>{item.data}</td>
-                  <td>{item.descricao}</td>
-                  <td className="pontos-col">{item.pontos}</td>
+              {extrato.length > 0 ? (
+                extrato.map((item, i) => (
+                  <tr key={i}>
+                    <td>{item.data}</td>
+                    <td>{item.descricao}</td>
+                    <td className="pontos-col">{item.pontos}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="3" style={{ textAlign: "center", padding: "20px" }}>
+                    Nenhum ponto acumulado ainda.
+                  </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

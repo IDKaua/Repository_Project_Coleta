@@ -1,14 +1,44 @@
-import React, { useState, forwardRef } from "react";
+import React, { useState, useEffect, forwardRef } from "react";
 
-export const ListaColetores = forwardRef(({ onSelect, estaAtribuindo }, ref) => {
+export const ListaColetores = forwardRef(({ onSelect, estaAtribuindo, onCancelar }, ref) => {
   const [coletores, setColetores] = useState([
-    { nome: "Carlos Silva", cpf: "123.456.789-00", email: "carlos@email.com", status: "Ativo" },
-    { nome: "Ana Souza", cpf: "987.654.321-00", email: "ana@email.com", status: "Em Rota" },
-    { nome: "João Ferreira", cpf: "456.123.789-00", email: "joao@email.com", status: "Inativo" },
+    {
+      id: 1,
+      nome: "Carlos Silva",
+      cpf: "123.456.789-00",
+      email: "carlos@email.com",
+      status: "Ativo",
+      placaVeiculo: "ABC-1234",
+      cnh: "123456",
+    },
+    {
+      id: 2,
+      nome: "Ana Souza",
+      cpf: "987.654.321-00",
+      email: "ana@email.com",
+      status: "Em Rota",
+      placaVeiculo: "XYZ-5678",
+      cnh: "789012",
+    },
+    {
+      id: 3,
+      nome: "João Ferreira",
+      cpf: "456.123.789-00",
+      email: "joao@email.com",
+      status: "Inativo",
+      placaVeiculo: "DEF-9012",
+      cnh: "345678",
+    },
   ]);
 
+  const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+
   const [mostrarForm, setMostrarForm] = useState(false);
-  const [formData, setFormData] = useState({ nome: "", cpf: "", email: "" });
+  const [formData, setFormData] = useState({
+    nome: "",
+    cpf: "",
+    email: "",
+  });
 
   const formatarCPF = (value) => {
     return value
@@ -23,44 +53,128 @@ export const ListaColetores = forwardRef(({ onSelect, estaAtribuindo }, ref) => 
     return limpo.length === 11;
   };
 
-  const handleSalvar = (e) => {
+  const carregarColetores = async () => {
+    if (!usuarioLogado || usuarioLogado.tipoUsuario !== "COOPERATIVA") return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:8080/api/cooperativas/${usuarioLogado.id}/meus-coletores`
+      );
+
+      if (res.ok) {
+        const dados = await res.json();
+
+        if (dados && dados.length > 0) {
+          const mapeados = dados.map((col) => ({
+            id: col.id,
+            nome: col.nome,
+            cpf: col.documento || "",
+            email: col.email || "",
+            status: "Ativo",
+            placaVeiculo: col.placaVeiculo || "ABC-1234",
+            cnh: col.cnh || "123456",
+          }));
+
+          setColetores(mapeados);
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao carregar coletores:", err);
+    }
+  };
+
+  useEffect(() => {
+    carregarColetores();
+  }, [usuarioLogado?.id]);
+
+  const handleSalvar = async (e) => {
     e.preventDefault();
+
     if (!validarCPF(formData.cpf)) {
       alert("Por favor, insira um CPF válido com 11 dígitos.");
       return;
     }
-    const novo = { ...formData, status: "Ativo" };
-    setColetores([...coletores, novo]);
-    setMostrarForm(false);
-    setFormData({ nome: "", cpf: "", email: "" });
+
+    if (usuarioLogado && usuarioLogado.id) {
+      const novoColetor = {
+        nome: formData.nome,
+        documento: formData.cpf,
+        email: formData.email,
+        senha: "senhaColetor123",
+        telefone: "82999999999",
+        tipoUsuario: "COLETOR",
+        cnh: "123456789",
+        placaVeiculo: "ABC-1234",
+      };
+
+      try {
+        const res = await fetch(
+          `http://localhost:8080/api/cooperativas/${usuarioLogado.id}/cadastrar-coletor`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(novoColetor),
+          }
+        );
+
+        if (res.ok) {
+          await carregarColetores();
+          setMostrarForm(false);
+          setFormData({ nome: "", cpf: "", email: "" });
+        } else {
+          const erroMsg = await res.text();
+          alert(erroMsg || "Erro ao cadastrar coletor no backend.");
+        }
+      } catch (err) {
+        console.error("Erro ao salvar coletor:", err);
+        alert("Erro ao conectar com o servidor. Verifique se o backend está rodando.");
+      }
+    } else {
+      const novo = {
+        id: Date.now(),
+        nome: formData.nome,
+        cpf: formData.cpf,
+        email: formData.email,
+        status: "Ativo",
+        placaVeiculo: "ABC-1234",
+        cnh: "123456",
+      };
+
+      setColetores((prev) => [...prev, novo]);
+      setMostrarForm(false);
+      setFormData({ nome: "", cpf: "", email: "" });
+    }
   };
 
   const selecionarColetor = (coletorSelecionado) => {
-    if (estaAtribuindo) {
-      if (coletorSelecionado.status === "Ativo") {
+    if (!estaAtribuindo) return;
 
-        // 🔥 Atualiza status para "Em Rota"
-        setColetores((prev) =>
-          prev.map((c) =>
-            c.nome === coletorSelecionado.nome
-              ? { ...c, status: "Em Rota" }
-              : c
-          )
-        );
-
-        // Continua fluxo
-        onSelect(coletorSelecionado.nome);
-
-      } else {
-        alert("Este coletor não está disponível (Status: " + coletorSelecionado.status + ").");
-      }
+    if (coletorSelecionado.status !== "Ativo") {
+      alert(
+        "Este coletor não está disponível. Status: " +
+          coletorSelecionado.status
+      );
+      return;
     }
+
+    setColetores((prev) =>
+      prev.map((c) =>
+        c.id === coletorSelecionado.id
+          ? { ...c, status: "Em Rota" }
+          : c
+      )
+    );
+
+    onSelect(coletorSelecionado);
   };
 
   return (
     <section className="painel-card" ref={ref}>
       <div className="card-header-tag">
         <i className="fas fa-users"></i>
+
         <h3>
           {estaAtribuindo
             ? "SELECIONE UM COLETOR ATIVO"
@@ -74,6 +188,15 @@ export const ListaColetores = forwardRef(({ onSelect, estaAtribuindo }, ref) => 
           >
             <i className="fas fa-plus"></i>{" "}
             {mostrarForm ? "Fechar" : "Novo Coletor"}
+          </button>
+        )}
+
+        {estaAtribuindo && onCancelar && (
+          <button
+            className="btn-cancelar"
+            onClick={onCancelar}
+          >
+            <i className="fas fa-times"></i> Cancelar
           </button>
         )}
       </div>
@@ -166,9 +289,9 @@ export const ListaColetores = forwardRef(({ onSelect, estaAtribuindo }, ref) => 
           </thead>
 
           <tbody>
-            {coletores.map((coletor, index) => (
+            {coletores.map((coletor) => (
               <tr
-                key={index}
+                key={coletor.id}
                 onClick={() => selecionarColetor(coletor)}
                 style={{
                   cursor:
@@ -207,6 +330,7 @@ export const ListaConteineres = () => (
     <div className="card-header-tag">
       <i className="fas fa-box"></i>
       <h3>LISTA DE CONTÊINERES CADASTRADOS</h3>
+
       <button className="btn-novo">
         <i className="fas fa-plus"></i> Novo Contêiner
       </button>
@@ -230,6 +354,7 @@ export const ListaConteineres = () => (
               <span className="nivel-tag nivel-medio">Médio</span>
             </td>
           </tr>
+
           <tr>
             <td>Av. Fernandes Lima, 340 — Maceió</td>
             <td>1000 kg</td>

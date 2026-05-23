@@ -60,6 +60,24 @@
 }
 .btn-novo:hover { background: #3d8c3d; }
 
+/* ── Botão Cancelar ── */
+.btn-cancelar {
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s;
+  margin-left: auto;
+}
+.btn-cancelar:hover { background: #b91c1c; }
+
 /* ── Tabela ── */
 .table-wrapper { overflow-x: auto; }
 

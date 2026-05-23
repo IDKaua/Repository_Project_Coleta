@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./SolicitarColeta.css";
-import "./FormColeta.css"
+import "./FormColeta.css";
 
 import UploadFotos from "./UploadFotos";
 import InfoLixo from "./InfoLixo";
@@ -74,11 +74,14 @@ const SolicitarColeta = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(dadosParaOJava),
-        }
+        },
       );
 
       if (resposta.ok) {
         alert("Sucesso! O caminhão da cooperativa foi acionado.");
+        // Dispara evento para o Header atualizar o link de rastreio
+        try { localStorage.removeItem('rastreioOcultoUntil'); } catch (e) {}
+        window.dispatchEvent(new Event("coletaSolicitada"));
         navigate("/rastreio");
       } else {
         alert("Erro ao solicitar a coleta.");
