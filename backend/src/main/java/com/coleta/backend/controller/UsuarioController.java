@@ -85,7 +85,22 @@ public class UsuarioController {
         }
     }
 
-    // Rota 3: A rota administrativa (Cooperativa cadastra Coletor)
+    // Rota 3: Login do Coletor (apenas CPF, sem senha)
+    @PostMapping("/login-coletor")
+    public ResponseEntity<?> loginColetor(@RequestBody Map<String, String> credenciais) {
+        String documento = credenciais.get("documento");
+
+        Optional<Coletor> coletorOpt = coletorRepository.findByDocumento(documento);
+
+        if (coletorOpt.isPresent()) {
+            Coletor coletor = coletorOpt.get();
+            return ResponseEntity.ok(coletor);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Coletor não encontrado com este CPF!");
+        }
+    }
+
+    // Rota 4: A rota administrativa (Cooperativa cadastra Coletor)
     @PostMapping("/cooperativa/{idCoo}/cadastrar-coletor")
     public ResponseEntity<?> cadastrarFuncionario(@PathVariable Long idCoo, @RequestBody Coletor novoColetor) {
         

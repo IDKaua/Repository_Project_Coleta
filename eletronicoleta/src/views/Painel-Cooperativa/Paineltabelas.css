@@ -44,56 +44,76 @@
 
 /* ── Botão Novo ── */
 .btn-novo {
-  background: #438e44;
+  background: linear-gradient(135deg, #2d8659 0%, #438e44 100%);
   color: white;
   border: none;
   border-radius: 8px;
-  padding: 7px 14px;
+  padding: 10px 16px;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
+  justify-content: center;
   align-items: center;
   gap: 6px;
-  transition: background 0.2s;
-  margin-left: auto;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(45, 134, 89, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* ── Botão Novo ── */
-.btn-novo {
-  background: #438e44;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 4px 8px; /* Reduzimos um pouquinho mais as laterais */
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  display: inline-flex;
-  justify-content: center; 
-  align-items: center;
-  gap: 4px;
-  width: 90px; /* Largura reduzida para igualar ao CONCLUÍDA */
-  white-space: nowrap; /* Garante que o texto fique em uma linha só */
-  transition: background 0.2s;
+.btn-novo:hover {
+  background: linear-gradient(135deg, #256848 0%, #37763a 100%);
+  box-shadow: 0 4px 12px rgba(45, 134, 89, 0.45);
+  transform: translateY(-1px);
 }
 
+.btn-novo:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(45, 134, 89, 0.2);
+}
+
+.btn-novo i {
+  font-size: 13px;
+}
 
 /* ── Botão Cancelar ── */
 .btn-cancelar {
-  background: #dc2626;
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
   color: white;
-  border: none; 
-  padding: 7px 14px;
-  padding: 4px;  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
+  justify-content: center;
   align-items: center;
   gap: 6px;
-  transition: background 0.2s;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   margin-left: auto;
 }
-.btn-cancelar:hover { background: #b91c1c; }
+
+.btn-cancelar:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.45);
+  transform: translateY(-1px);
+}
+
+.btn-cancelar:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+}
+
+.btn-cancelar i {
+  font-size: 13px;
+}
 
 /* ── Tabela ── */
 .table-wrapper { overflow-x: auto; }
@@ -182,3 +202,42 @@
   transition: border-color 0.2s;
 }
 .acao-select:focus { outline: none; border-color: #438e44; }
+
+/* ── Campos de Formulário ── */
+.campo-form-end {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.campo-form-end label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #4b5563;
+}
+
+.campo-form-end input {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  background: #ffffff;
+  color: #1f2937;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.campo-form-end input:focus {
+  outline: none;
+  border-color: #438e44;
+  box-shadow: 0 0 0 3px rgba(45, 134, 89, 0.1);
+  background: #f0fdf4;
+}
+
+.campo-form-end input::placeholder {
+  color: #9ca3af;
+}

@@ -48,9 +48,15 @@ const Login = () => {
         ? "http://localhost:8080/api/usuarios/login-coletor"
         : "http://localhost:8080/api/usuarios/login";
 
+      // Para coletor: remove formatação do documento
+      // Para outros: mantém o formato armazenado no banco
+      const documentoParaEnviar = isColetorLogin
+        ? identificador.replace(/\D/g, "")
+        : identificador;
+
       const bodyData = isColetorLogin
-        ? { documento: identificador }
-        : { documento: identificador, senha: password };
+        ? { documento: documentoParaEnviar }
+        : { documento: documentoParaEnviar, senha: password };
 
       const resposta = await fetch(endpoint, {
         method: "POST",

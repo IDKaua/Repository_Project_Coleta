@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -10,166 +10,246 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-const userIcon = L.divIcon({
-  html: `
-    <div class="rastreio-pin user-pin">
-      <div class="pin-dot red-dot"></div>
-    </div>
-  `,
-  className: "custom-pin",
-  iconSize: [24, 24],
-  iconAnchor: [12, 12],
+// ── Corrige ícones padrão do Leaflet ─────────────────────────────────────
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl:       "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl:     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-const ecoIcon = L.divIcon({
-  html: `
-    <div class="rastreio-pin eco-pin">
-      <i class="fas fa-building"></i>
-    </div>
-  `,
-  className: "custom-pin",
-  iconSize: [30, 30],
-  iconAnchor: [15, 15],
-});
+const API_BASE         = "http://localhost:8080";
+const POLL_INTERVAL_MS = 4000;
 
+// Posição de fallback do coletor (cooperativa) — usada enquanto backend não responde
+const ECO_LOC = [-9.654, -35.7315];
+
+// ── Ícone caminhão ────────────────────────────────────────────────────────
 const truckIcon = L.divIcon({
-  html: `
-    <div class="rastreio-pin truck-pin">
-      <i class="fas fa-truck"></i>
-    </div>
-  `,
-  className: "custom-pin",
-  iconSize: [36, 36],
-  iconAnchor: [18, 18],
+  className: "",
+  html: `<div style="
+    width:44px;height:44px;
+    background:#4a90e2;
+    border-radius:50%;
+    border:3px solid #fff;
+    box-shadow:0 3px 14px rgba(74,144,226,0.55);
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;
+  ">🚛</div>`,
+  iconSize:   [44, 44],
+  iconAnchor: [22, 22],
+  popupAnchor:[0, -24],
 });
 
-const AjustarCamera = ({ userLoc, ecoLoc }) => {
-  const map = useMap();
+// ── Ícone cliente ─────────────────────────────────────────────────────────
+const clienteIcon = L.divIcon({
+  className: "",
+  html: `<div style="
+    width:44px;height:44px;
+    background:#2d8659;
+    border-radius:50%;
+    border:3px solid #fff;
+    box-shadow:0 3px 14px rgba(45,134,89,0.55);
+    display:flex;align-items:center;justify-content:center;
+    font-size:17px;font-weight:800;color:#fff;
+    font-family:'Segoe UI',sans-serif;
+  ">EU</div>`,
+  iconSize:   [44, 44],
+  iconAnchor: [22, 44],
+  popupAnchor:[0, -46],
+});
+
+// ── Haversine ─────────────────────────────────────────────────────────────
+function haversine([lat1, lon1], [lat2, lon2]) {
+  const R = 6_371_000;
+  const r = d => (d * Math.PI) / 180;
+  const a =
+    Math.sin(r(lat2 - lat1) / 2) ** 2 +
+    Math.cos(r(lat1)) * Math.cos(r(lat2)) *
+    Math.sin(r(lon2 - lon1) / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// ── Busca rota OSRM entre dois pontos ─────────────────────────────────────
+async function buscarRota(from, to) {
+  const url =
+    `https://router.project-osrm.org/route/v1/driving/` +
+    `${from[1]},${from[0]};${to[1]},${to[0]}` +
+    `?overview=full&geometries=geojson`;
+  const res  = await fetch(url, { signal: AbortSignal.timeout(12_000) });
+  const data = await res.json();
+  if (data.routes?.[0]) {
+    return {
+      coords:   data.routes[0].geometry.coordinates.map(([lon, lat]) => [lat, lon]),
+      duracao:  data.routes[0].duration, // segundos
+    };
+  }
+  return null;
+}
+
+// ── Câmera: enquadra os dois pontos e segue o caminhão ───────────────────
+function AjustarCamera({ userLoc, truckPos }) {
+  const map    = useMap();
+  const fitted = useRef(false);
 
   useEffect(() => {
-    if (userLoc && ecoLoc) {
-      const bounds = L.latLngBounds([userLoc, ecoLoc]);
+    const t = setTimeout(() => map.invalidateSize(), 200);
+    return () => clearTimeout(t);
+  }, [map]);
 
-      map.fitBounds(bounds, {
-        padding: [50, 50],
+  useEffect(() => {
+    if (!userLoc || !truckPos) return;
+    if (!fitted.current) {
+      map.fitBounds(L.latLngBounds([userLoc, truckPos]), {
+        padding: [70, 70],
+        animate: true,
       });
+      fitted.current = true;
+    } else {
+      map.panTo(truckPos, { animate: true, duration: 0.6 });
     }
-  }, [userLoc, ecoLoc, map]);
+  }, [truckPos, userLoc, map]);
 
   return null;
-};
+}
 
-const MapaRastreio = ({ status }) => {
-  const [userLoc, setUserLoc] = useState(null);
-  const [truckLoc, setTruckLoc] = useState(null);
+// ─────────────────────────────────────────────────────────────────────────
+const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress }) => {
+  const [userLoc,     setUserLoc]     = useState(null);
+  const [truckPos,    setTruckPos]    = useState(ECO_LOC); // começa na cooperativa
   const [routeCoords, setRouteCoords] = useState([]);
+  const [backendVivo, setBackendVivo] = useState(false);
 
-  const isPendente =
-    status === "PENDENTE" || status === "Pendente";
+  const onDurationRef   = useRef(onDurationFetched);
+  const onProgressRef   = useRef(onProgress);
+  const duracaoInicRef  = useRef(null);
+  const userLocRef      = useRef(null);
+  const truckPosRef     = useRef(ECO_LOC);
 
-  const ecoLoc = [-9.654, -35.7315];
+  useEffect(() => { onDurationRef.current = onDurationFetched; }, [onDurationFetched]);
+  useEffect(() => { onProgressRef.current = onProgress; },       [onProgress]);
 
+  const isPendente = status === "PENDENTE" || status === "Pendente";
+
+  // ── Pega GPS do cliente e traça rota inicial imediatamente ───────────────
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        const userPos = [latitude, longitude];
+      async ({ coords }) => {
+        const pos = [coords.latitude, coords.longitude];
+        setUserLoc(pos);
+        userLocRef.current = pos;
 
-        setUserLoc(userPos);
-
-        if (isPendente) {
-          setRouteCoords([]);
-          setTruckLoc(null);
-          return;
+        // Traça rota da cooperativa → cliente logo que o GPS responder
+        try {
+          const resultado = await buscarRota(truckPosRef.current, pos);
+          if (resultado) {
+            setRouteCoords(resultado.coords);
+            duracaoInicRef.current = resultado.duracao;
+            onDurationRef.current?.(resultado.duracao);
+            onProgressRef.current?.(resultado.duracao, resultado.duracao);
+          }
+        } catch (e) {
+          console.warn("[MapaRastreio] Rota inicial:", e.message);
         }
-
-        fetch(
-          `https://router.project-osrm.org/route/v1/driving/${ecoLoc[1]},${ecoLoc[0]};${longitude},${latitude}?overview=full&geometries=geojson`
-        )
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.routes && data.routes.length > 0) {
-              const coordsDaRua =
-                data.routes[0].geometry.coordinates.map((c) => [
-                  c[1],
-                  c[0],
-                ]);
-
-              setRouteCoords(coordsDaRua);
-              setTruckLoc(coordsDaRua[0]);
-            }
-          })
-          .catch((error) => {
-            console.error("Erro ao buscar rota:", error);
-          });
       },
       (err) => {
-        console.error("Erro ao acessar o GPS:", err);
-        alert(
-          "Ative a localização no seu navegador para simular a rota!"
-        );
-      }
+        console.error("GPS cliente:", err);
+        alert("Ative a localização no navegador para usar o rastreio.");
+      },
+      { enableHighAccuracy: true, timeout: 20_000, maximumAge: 0 }
     );
-  }, [isPendente]);
+  }, []);
 
+  // ── Polling: busca posição real do coletor no backend ────────────────────
   useEffect(() => {
-    if (routeCoords.length === 0) return;
+    if (isPendente || !coletaId) return;
 
-    let passoAtual = 0;
+    const poll = async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE}/api/coletas/${coletaId}/localizacao`,
+          { signal: AbortSignal.timeout(5_000) }
+        );
+        if (!res.ok) return;
 
-    const animacao = setInterval(() => {
-      if (passoAtual < routeCoords.length) {
-        setTruckLoc(routeCoords[passoAtual]);
-        passoAtual += 3;
-      } else {
-        clearInterval(animacao);
+        const data = await res.json(); // { lat, lng }
+        if (!data?.lat || !data?.lng) return;
+
+        const novaPosicao = [data.lat, data.lng];
+
+        // Só atualiza se o coletor realmente se moveu (>5m)
+        const moveu = haversine(truckPosRef.current, novaPosicao) > 5;
+        if (!moveu) return;
+
+        truckPosRef.current = novaPosicao;
+        setTruckPos(novaPosicao);
+        setBackendVivo(true);
+
+        // Recalcula rota da nova posição do coletor até o cliente
+        if (userLocRef.current) {
+          try {
+            const resultado = await buscarRota(novaPosicao, userLocRef.current);
+            if (resultado) {
+              setRouteCoords(resultado.coords);
+
+              // Atualiza tempo restante
+              onProgressRef.current?.(
+                resultado.duracao,
+                duracaoInicRef.current ?? resultado.duracao
+              );
+            }
+          } catch (e) {
+            console.warn("[MapaRastreio] Rota atualizada:", e.message);
+          }
+        }
+      } catch (e) {
+        // backend ainda não implementou o endpoint — rota inicial já está visível
+        console.warn("[MapaRastreio] Polling:", e.message);
       }
-    }, 300);
+    };
 
-    return () => clearInterval(animacao);
-  }, [routeCoords]);
+    poll(); // primeira chamada imediata
+    const intervalo = setInterval(poll, POLL_INTERVAL_MS);
+    return () => clearInterval(intervalo);
+  }, [coletaId, isPendente]);
 
   return (
     <MapContainer
-      center={ecoLoc}
+      center={ECO_LOC}
       zoom={13}
-      style={{
-        height: "100%",
-        width: "100%",
-        borderRadius: "20px",
-      }}
-      zoomControl={false}
+      style={{ height: "100%", width: "100%", borderRadius: "16px" }}
+      zoomControl
+      scrollWheelZoom
     >
       <TileLayer
-        attribution="&copy; OpenStreetMap"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      <AjustarCamera userLoc={userLoc} ecoLoc={ecoLoc} />
+      <AjustarCamera userLoc={userLoc} truckPos={truckPos} />
 
-      {routeCoords.length > 0 && (
+      {/* Rota azul do coletor até o cliente */}
+      {routeCoords.length > 1 && (
         <Polyline
           positions={routeCoords}
-          color="#3b82f6"
+          color="#4a90e2"
           weight={5}
-          opacity={0.7}
+          opacity={0.8}
         />
       )}
 
+      {/* Marcador do cliente */}
       {userLoc && (
-        <Marker position={userLoc} icon={userIcon}>
-          <Popup>Sua Localização</Popup>
+        <Marker position={userLoc} icon={clienteIcon}>
+          <Popup>📍 Seu endereço</Popup>
         </Marker>
       )}
 
-      {truckLoc && (
-        <Marker position={truckLoc} icon={truckIcon}>
-          <Popup>Caminhão em Rota</Popup>
-        </Marker>
-      )}
-
-      <Marker position={ecoLoc} icon={ecoIcon}>
-        <Popup>Central EcoTech</Popup>
+      {/* Marcador do coletor */}
+      <Marker position={truckPos} icon={truckIcon}>
+        <Popup>
+          🚛 {backendVivo ? "Posição em tempo real" : "Aguardando localização do coletor…"}
+        </Popup>
       </Marker>
     </MapContainer>
   );

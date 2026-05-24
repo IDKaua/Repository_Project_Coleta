@@ -6,32 +6,28 @@ import MapaRastreio from "./MapaRastreio";
 
 const Rastreio = () => {
   const navigate = useNavigate();
-  const [tempo, setTempo] = useState(15);
-  const [coletaAtiva, setColetaAtiva] = useState(null);
-  const [carregando, setCarregando] = useState(true);
+  const [coletaAtiva, setColetaAtiva]     = useState(null);
+  const [carregando, setCarregando]       = useState(true);
+
+  // Duração total da rota (segundos) e progresso 0→1 vindos do MapaRastreio
+  const [rotaDuracao, setRotaDuracao]     = useState(null);
+  const [rotaProgresso, setRotaProgresso] = useState(0);
 
   const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
 
   useEffect(() => {
     const buscarColeta = async () => {
       if (!usuarioLogado) return;
-
       try {
         const response = await fetch("http://localhost:8080/api/coletas/all");
-
         if (response.ok) {
           const coletas = await response.json();
-
           const minhaColeta = coletas
             .filter(
-              (c) =>
-                c.morador?.id === usuarioLogado.id && c.status !== "COLETADO",
+              (c) => c.morador?.id === usuarioLogado.id && c.status !== "COLETADO"
             )
             .reverse()[0];
-
-          if (minhaColeta) {
-            setColetaAtiva(minhaColeta);
-          }
+          if (minhaColeta) setColetaAtiva(minhaColeta);
         }
       } catch (error) {
         console.error("Erro ao buscar coleta:", error);
@@ -39,45 +35,34 @@ const Rastreio = () => {
         setCarregando(false);
       }
     };
-
     buscarColeta();
   }, [usuarioLogado?.id]);
 
-  useEffect(() => {
-    if (tempo > 0 && coletaAtiva) {
-      const timer = setInterval(() => {
-        setTempo((prev) => prev - 1);
-      }, 1500);
+  // Tempo restante em minutos, diminui conforme o caminhão avança
+  const tempoRestante =
+    rotaDuracao != null
+      ? Math.max(0, Math.round((rotaDuracao * (1 - rotaProgresso)) / 60))
+      : null;
 
-      return () => clearInterval(timer);
-    }
-  }, [tempo, coletaAtiva]);
+  const chegou = rotaProgresso >= 1;
 
   const handleConcluir = async () => {
     if (!coletaAtiva) return;
-
     try {
       const response = await fetch(
         `http://localhost:8080/api/coletas/finalizar/${coletaAtiva.id}`,
-        {
-          method: "PUT",
-        },
+        { method: "PUT" }
       );
-
       if (response.ok) {
         toast.success("✨ Coleta finalizada com sucesso!");
-
-        // Dispara evento para o Header remover o link de rastreio
         try {
-          localStorage.setItem('rastreioOcultoUntil', String(Date.now() + 2 * 60 * 1000));
+          localStorage.setItem(
+            "rastreioOcultoUntil",
+            String(Date.now() + 2 * 60 * 1000)
+          );
         } catch (e) {}
-        setTimeout(() => {
-          window.dispatchEvent(new Event("coletaConcluida"));
-        }, 100);
-
-        setTimeout(() => {
-          navigate("/minha-conta");
-        }, 2000);
+        setTimeout(() => window.dispatchEvent(new Event("coletaConcluida")), 100);
+        setTimeout(() => navigate("/minha-conta"), 2000);
       } else {
         toast.error("Erro ao finalizar coleta.");
       }
@@ -90,31 +75,21 @@ const Rastreio = () => {
   if (carregando) {
     return (
       <div className="rastreio-wrapper">
-        <p>Carregando rastreio...</p>
+        <div className="rastreio-loading">
+          <span className="rastreio-spinner" />
+          <p>Carregando rastreio...</p>
+        </div>
       </div>
     );
   }
 
   if (!coletaAtiva) {
-    // Redireciona automaticamente para solicitar coleta se não há nenhuma ativa
-    setTimeout(() => {
-      navigate("/solicitar-coleta", { replace: true });
-    }, 500);
-
+    setTimeout(() => navigate("/solicitar-coleta", { replace: true }), 500);
     return (
       <div className="rastreio-wrapper">
-        <main
-          className="rastreio-container"
-          style={{
-            textAlign: "center",
-            padding: "50px",
-          }}
-        >
+        <main className="rastreio-container" style={{ textAlign: "center", padding: "50px" }}>
           <h2>Redirecionando...</h2>
-          <p>
-            Você não possui uma coleta ativa. Redirecionando para solicitar uma
-            coleta.
-          </p>
+          <p>Você não possui uma coleta ativa.</p>
         </main>
       </div>
     );
@@ -126,55 +101,40 @@ const Rastreio = () => {
   return (
     <div className="rastreio-wrapper">
       <main className="rastreio-container">
-        <h1 className="titulo-sessao">
+        <h1 className="rastreio-titulo">
           RASTREAMENTO DA COLETA #{coletaAtiva.id}
         </h1>
 
-        <div className="rastreio-flex-layout">
-          <div className="mapa-secao">
-            <div className="mapa-container-high">
-              {/* removi mapa duplicado */}
-              <MapaRastreio status={coletaAtiva.status} />
-            </div>
-          </div>
+        <div className="rastreio-content">
 
-          <div className="cards-secao">
+          {/* ── LADO ESQUERDO: cards ──────────────────────────────────── */}
+          <div className="rastreio-left">
+
             {isPendente ? (
               <>
-                <div className="mini-card aguardando-card">
-                  <div className="status-header">
-                    <span className="pulse-dot-yellow"></span>
-
-                    <span
-                      style={{
-                        color: "#d97706",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      Aguardando Cooperativa
-                    </span>
+                {/* Card aguardando cooperativa */}
+                <div className="r-card r-card--amarelo">
+                  <div className="r-card-header">
+                    <span className="pulse-dot-yellow" />
+                    <span className="r-card-titulo amarelo">Aguardando Cooperativa</span>
                   </div>
-
-                  <h3>Designação de Coletor</h3>
-
-                  <p>
+                  <h3 className="r-card-h3">Designação de Coletor</h3>
+                  <p className="r-card-p">
                     Sua solicitação foi recebida. A cooperativa está
-                    selecionando o coletor.
+                    selecionando o coletor mais próximo.
                   </p>
                 </div>
 
-                <div className="mini-card stepper-card">
-                  <h4>ETAPAS DA SOLICITAÇÃO</h4>
-
+                {/* Stepper */}
+                <div className="r-card">
+                  <p className="r-card-subtitulo">ETAPAS DA SOLICITAÇÃO</p>
                   <div className="stepper-vertical">
                     <div className="step-item completed">
                       <strong>Solicitação criada</strong>
                     </div>
-
                     <div className="step-item active">
                       <strong>Triagem e escala</strong>
                     </div>
-
                     <div className="step-item pending">
                       <strong>Coletor a caminho</strong>
                     </div>
@@ -183,49 +143,48 @@ const Rastreio = () => {
               </>
             ) : (
               <>
-                <div className="mini-card driver-chat-card">
-                  <div className="rating-pill">⭐ 4.8</div>
-
-                  <div className="driver-header">
-                    <div className="avatar-circle">
-                      <i className="fas fa-user"></i>
+                {/* Card do coletor */}
+                <div className="r-card r-card--coletor">
+                  <div className="r-rating-pill">⭐ 4.8</div>
+                  <div className="r-coletor-header">
+                    <div className="r-avatar">
+                      <i className="fas fa-user" />
                     </div>
-
-                    <div className="driver-meta">
-                      <h3>{coletaAtiva.coletor?.nome || "Carlos Silva"}</h3>
+                    <div className="r-coletor-dados">
+                      <p className="r-coletor-nome">
+                        {coletaAtiva.coletor?.nome || "Carlos Silva"}
+                      </p>
+                      <p className="r-coletor-veiculo">
+                        {coletaAtiva.coletor?.placaVeiculo
+                          ? `Van · ${coletaAtiva.coletor.placaVeiculo}`
+                          : "Van · ABC-1234"}
+                      </p>
                     </div>
                   </div>
-
-                  <p className="vehicle-text">
-                    {coletaAtiva.coletor?.placaVeiculo
-                      ? `Van - ${coletaAtiva.coletor.placaVeiculo}`
-                      : "Van - ABC1234"}
-                  </p>
-
-                  <button className="btn-chat-motorista">CONVERSAR</button>
                 </div>
 
-                <div className="mini-card status-info-card">
-                  <div className="status-header">
-                    <i className="fas fa-clock"></i>
-
-                    <span>Status da Entrega</span>
+                {/* Card de tempo / chegada */}
+                <div className="r-card r-card--status">
+                  <div className="r-status-header">
+                    <i className="fas fa-clock" />
+                    <span>
+                      {chegou ? "Coletor Chegou!" : "Previsão de Chegada"}
+                    </span>
                   </div>
 
-                  {tempo > 0 ? (
+                  {!chegou ? (
                     <>
-                      <h2 className="tempo-texto">{tempo} min</h2>
-
-                      <p>O coletor está a caminho</p>
+                      <p className="r-tempo">
+                        {tempoRestante != null ? `${tempoRestante} min` : "..."}
+                      </p>
+                      <p className="r-tempo-sub">O coletor está a caminho</p>
                     </>
                   ) : (
                     <>
-                      <h2 className="chegou-texto">Seu coletor chegou!</h2>
-
-                      <p>Entregue os resíduos</p>
-
+                      <p className="r-chegou">Seu coletor chegou! 🎉</p>
+                      <p className="r-tempo-sub">Entregue os resíduos ao coletor</p>
                       <button
-                        className="btn-concluir-rastreio"
+                        className="r-btn-confirmar"
                         onClick={handleConcluir}
                       >
                         CONFIRMAR COLETA
@@ -236,21 +195,52 @@ const Rastreio = () => {
               </>
             )}
 
-            <div className="mini-card info-coleta-card">
-              <h4>RESUMO DA COLETA</h4>
+            {/* Resumo da coleta (sempre visível) */}
+            <div className="r-card">
+              <p className="r-card-subtitulo">RESUMO DA COLETA</p>
 
-              <div className="info-item">
-                <strong>Tipo:</strong>
-                <span> {coletaAtiva.tipoResiduo}</span>
+              <div className="r-info-item">
+                <span className="r-info-icon">♻️</span>
+                <div>
+                  <p className="r-info-label">Tipo de Resíduo</p>
+                  <p className="r-info-value">{coletaAtiva.tipoResiduo || "Eletrônicos"}</p>
+                </div>
               </div>
 
-              <div className="info-item">
-                <strong>Endereço:</strong>
+              <div className="r-info-item">
+                <span className="r-info-icon">📍</span>
+                <div>
+                  <p className="r-info-label">Endereço</p>
+                  <p className="r-info-value">
+                    {coletaAtiva.endereco || "Endereço cadastrado"}
+                  </p>
+                </div>
+              </div>
 
-                <span> {coletaAtiva.endereco || "Endereço cadastrado"}</span>
+              <div className="r-info-item">
+                <span className="r-info-icon">📦</span>
+                <div>
+                  <p className="r-info-label">Status</p>
+                  <p className={`r-info-value ${chegou ? "verde" : "azul"}`}>
+                    {chegou ? "Coletado ✅" : "Em rota 🚛"}
+                  </p>
+                </div>
               </div>
             </div>
+
           </div>
+
+          {/* ── LADO DIREITO: mapa ───────────────────────────────────── */}
+          <div className="rastreio-mapa-wrapper">
+            <MapaRastreio
+              status={coletaAtiva.status}
+              onDurationFetched={(s) => setRotaDuracao(s)}
+              onProgress={(atual, total) =>
+                total > 0 && setRotaProgresso(atual / total)
+              }
+            />
+          </div>
+
         </div>
       </main>
     </div>

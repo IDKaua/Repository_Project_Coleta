@@ -96,9 +96,12 @@ export const ListaColetores = forwardRef(({ onSelect, estaAtribuindo, onCancelar
     }
 
     if (usuarioLogado && usuarioLogado.id) {
+      // Remove formatação do CPF (pontos e hífens)
+      const cpfLimpo = formData.cpf.replace(/\D/g, "");
+
       const novoColetor = {
         nome: formData.nome,
-        documento: formData.cpf,
+        documento: cpfLimpo,
         email: formData.email,
         senha: "senhaColetor123",
         telefone: "82999999999",
@@ -301,7 +304,7 @@ export const ListaColetores = forwardRef(({ onSelect, estaAtribuindo, onCancelar
                 }}
               >
                 <td>{coletor.nome}</td>
-                <td>{coletor.cpf}</td>
+                <td>{formatarCPF(coletor.cpf)}</td>
                 <td>{coletor.email}</td>
                 <td>
                   <span
