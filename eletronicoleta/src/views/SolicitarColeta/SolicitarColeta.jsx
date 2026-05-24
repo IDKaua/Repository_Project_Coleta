@@ -50,21 +50,14 @@ const SolicitarColeta = () => {
     e.preventDefault();
     if (!usuarioLogado) return;
 
+    // Monta um endereço simples que o backend reconhece
+    const enderecoStr = `${formData.rua || ""} ${formData.numero || ""}, ${formData.bairro || ""} - ${formData.cidade || ""}/${formData.uf || ""} CEP: ${formData.cep || ""}`;
+
     const dadosParaOJava = {
+      nome: formData.nome_solicitante || usuarioLogado?.nome || "",
+      endereco: enderecoStr,
       tipoResiduo: formData.tipo_residuo,
-      quantidade: formData.quantidade,
-      porte: formData.porte,
-      nomeSolicitante: formData.nome_solicitante,
-      cep: formData.cep,
-      rua: formData.rua,
-      numero: formData.numero,
-      bairro: formData.bairro,
-      cidade: formData.cidade,
-      uf: formData.uf,
-      pontoReferencia: formData.ponto_referencia,
-      dataAgendamento: formData.data,
-      horaAgendamento: formData.hora,
-      descricao: `Coleta de ${formData.quantidade} item(ns) porte ${formData.porte}.`,
+      descricao: `Coleta de ${formData.quantidade} item(ns) porte ${formData.porte}. Ponto: ${formData.ponto_referencia || "-"}. Agendamento: ${formData.data || ""} ${formData.hora || ""}`,
     };
 
     try {
@@ -80,17 +73,23 @@ const SolicitarColeta = () => {
       if (resposta.ok) {
         alert("Sucesso! O caminhão da cooperativa foi acionado.");
         // Dispara evento para o Header atualizar o link de rastreio
-        try { localStorage.removeItem('rastreioOcultoUntil'); } catch (e) {}
+        try {
+          localStorage.removeItem("rastreioOcultoUntil");
+        } catch (e) {}
         window.dispatchEvent(new Event("coletaSolicitada"));
         navigate("/rastreio");
       } else {
-        alert("Erro ao solicitar a coleta.");
-        navigate("/rastreio");
+        // Mostra mensagem retornada pelo servidor para diagnóstico
+        let texto = "Erro ao solicitar a coleta.";
+        try {
+          texto = await resposta.text();
+        } catch (e) {}
+        alert(`Erro ao solicitar a coleta: ${texto}`);
+        // Não navega para /rastreio quando houve falha
       }
     } catch (erro) {
       console.error("Erro no servidor:", erro);
-      alert("Erro de conexão.");
-      navigate("/rastreio");
+      alert(`Erro de conexão: ${erro.message}`);
     }
   };
 

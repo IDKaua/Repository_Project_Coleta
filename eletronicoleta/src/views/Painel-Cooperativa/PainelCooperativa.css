@@ -127,16 +127,21 @@
 .painel-subtitulo { font-size: 14px; color: #6b7280; margin: 0 0 28px; }
 
 .painel-grid {
-  display: grid;
-  grid-template-columns: 1.3fr 1fr;
+  display: flex;
+  justify-content: center; /* Centraliza o conteúdo horizontalmente */
   gap: 22px;
-  align-items: stretch;
+  width: 100%;
 }
 
-.painel-coluna-esq,
-.painel-coluna-dir {
+.painel-coluna-esq {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 1000px; /* Controla a largura máxima do card. Ajuste se quiser mais largo ou mais estreito */
+}
+
+.painel-coluna-dir {
+  display: none; /* Oculta a coluna da direita enquanto o PainelTriagem estiver comentado */
 }
 
 .painel-footer {

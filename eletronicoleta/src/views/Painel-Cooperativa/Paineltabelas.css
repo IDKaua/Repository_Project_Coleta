@@ -58,17 +58,34 @@
   transition: background 0.2s;
   margin-left: auto;
 }
-.btn-novo:hover { background: #3d8c3d; }
+
+/* ── Botão Novo ── */
+.btn-novo {
+  background: #438e44;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px; /* Reduzimos um pouquinho mais as laterais */
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center; 
+  align-items: center;
+  gap: 4px;
+  width: 90px; /* Largura reduzida para igualar ao CONCLUÍDA */
+  white-space: nowrap; /* Garante que o texto fique em uma linha só */
+  transition: background 0.2s;
+}
+
 
 /* ── Botão Cancelar ── */
 .btn-cancelar {
   background: #dc2626;
   color: white;
-  border: none;
-  border-radius: 8px;
+  border: none; 
   padding: 7px 14px;
-  font-size: 12px;
-  font-weight: 700;
+  padding: 4px;  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -85,6 +102,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  /*Compensa o padding do wrapper para alinhar com as bordas do card */
 }
 
 .painel-table th {
@@ -95,7 +113,7 @@
   letter-spacing: 0.5px;
   text-transform: uppercase;
   padding: 10px 14px;
-  text-align: left;
+  text-align: center;
   border-bottom: 2px solid #e5e7eb;
 }
 
@@ -104,6 +122,7 @@
   border-bottom: 1px solid #f3f4f6;
   color: #374151;
   vertical-align: middle;
+  text-align: center;
 }
 
 .painel-table tbody tr:hover { background: #f9fafb; }

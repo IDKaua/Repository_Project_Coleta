@@ -155,7 +155,7 @@ const PainelCooperativa = () => {
 
             <h1 className="painel-titulo">
               PAINEL DA COOPERATIVA{" "}
-              <span className="titulo-sub">(Gestão e Triagem)</span>
+              <span className="titulo-sub"></span>
             </h1>
 
             <div className="painel-grid">
