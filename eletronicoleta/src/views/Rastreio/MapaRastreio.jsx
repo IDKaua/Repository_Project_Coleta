@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -9,6 +9,7 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "./MapaRastreio.css";
 
 // ── Corrige ícones padrão do Leaflet ─────────────────────────────────────
 delete L.Icon.Default.prototype._getIconUrl;
@@ -20,40 +21,24 @@ L.Icon.Default.mergeOptions({
 
 const API_BASE         = "http://localhost:8080";
 const POLL_INTERVAL_MS = 4000;
-
-// Posição de fallback do coletor (cooperativa) — usada enquanto backend não responde
-const ECO_LOC = [-9.654, -35.7315];
+// Posição de partida do coletor (cooperativa em Maceió)
+const ECO_LOC          = [-9.654, -35.7315];
+// Raio de chegada em metros
+const ARRIVAL_M        = 60;
 
 // ── Ícone caminhão ────────────────────────────────────────────────────────
 const truckIcon = L.divIcon({
   className: "",
-  html: `<div style="
-    width:44px;height:44px;
-    background:#4a90e2;
-    border-radius:50%;
-    border:3px solid #fff;
-    box-shadow:0 3px 14px rgba(74,144,226,0.55);
-    display:flex;align-items:center;justify-content:center;
-    font-size:20px;
-  ">🚛</div>`,
+  html: `<div class="mapa-icon mapa-icon--truck">🚛</div>`,
   iconSize:   [44, 44],
   iconAnchor: [22, 22],
-  popupAnchor:[0, -24],
+  popupAnchor:[0, -26],
 });
 
 // ── Ícone cliente ─────────────────────────────────────────────────────────
 const clienteIcon = L.divIcon({
   className: "",
-  html: `<div style="
-    width:44px;height:44px;
-    background:#2d8659;
-    border-radius:50%;
-    border:3px solid #fff;
-    box-shadow:0 3px 14px rgba(45,134,89,0.55);
-    display:flex;align-items:center;justify-content:center;
-    font-size:17px;font-weight:800;color:#fff;
-    font-family:'Segoe UI',sans-serif;
-  ">EU</div>`,
+  html: `<div class="mapa-icon mapa-icon--cliente">EU</div>`,
   iconSize:   [44, 44],
   iconAnchor: [22, 44],
   popupAnchor:[0, -46],
@@ -70,24 +55,25 @@ function haversine([lat1, lon1], [lat2, lon2]) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// ── Busca rota OSRM entre dois pontos ─────────────────────────────────────
+// ── Busca rota OSRM ───────────────────────────────────────────────────────
 async function buscarRota(from, to) {
   const url =
     `https://router.project-osrm.org/route/v1/driving/` +
     `${from[1]},${from[0]};${to[1]},${to[0]}` +
-    `?overview=full&geometries=geojson`;
+    `?overview=full&geometries=geojson&annotations=true`;
   const res  = await fetch(url, { signal: AbortSignal.timeout(12_000) });
   const data = await res.json();
   if (data.routes?.[0]) {
     return {
-      coords:   data.routes[0].geometry.coordinates.map(([lon, lat]) => [lat, lon]),
-      duracao:  data.routes[0].duration, // segundos
+      coords:  data.routes[0].geometry.coordinates.map(([lon, lat]) => [lat, lon]),
+      duracao: data.routes[0].duration,   // segundos
+      distancia: data.routes[0].distance, // metros
     };
   }
   return null;
 }
 
-// ── Câmera: enquadra os dois pontos e segue o caminhão ───────────────────
+// ── Câmera ────────────────────────────────────────────────────────────────
 function AjustarCamera({ userLoc, truckPos }) {
   const map    = useMap();
   const fitted = useRef(false);
@@ -101,8 +87,7 @@ function AjustarCamera({ userLoc, truckPos }) {
     if (!userLoc || !truckPos) return;
     if (!fitted.current) {
       map.fitBounds(L.latLngBounds([userLoc, truckPos]), {
-        padding: [70, 70],
-        animate: true,
+        padding: [70, 70], animate: true,
       });
       fitted.current = true;
     } else {
@@ -113,25 +98,89 @@ function AjustarCamera({ userLoc, truckPos }) {
   return null;
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress }) => {
+const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress, onChegou }) => {
   const [userLoc,     setUserLoc]     = useState(null);
-  const [truckPos,    setTruckPos]    = useState(ECO_LOC); // começa na cooperativa
+  const [truckPos,    setTruckPos]    = useState(ECO_LOC);
   const [routeCoords, setRouteCoords] = useState([]);
   const [backendVivo, setBackendVivo] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const onDurationRef   = useRef(onDurationFetched);
-  const onProgressRef   = useRef(onProgress);
-  const duracaoInicRef  = useRef(null);
-  const userLocRef      = useRef(null);
-  const truckPosRef     = useRef(ECO_LOC);
+  // Simulação
+  const [simAtiva,    setSimAtiva]    = useState(false);
+  const [simLoading,  setSimLoading]  = useState(false);
 
-  useEffect(() => { onDurationRef.current = onDurationFetched; }, [onDurationFetched]);
-  useEffect(() => { onProgressRef.current = onProgress; },       [onProgress]);
+  const onDurationRef  = useRef(onDurationFetched);
+  const onProgressRef  = useRef(onProgress);
+  const onChegouRef    = useRef(onChegou);
+  const duracaoInicRef = useRef(null);
+  const distInicRef    = useRef(null);
+  const userLocRef     = useRef(null);
+  const truckPosRef    = useRef(ECO_LOC);
+  const chegouRef      = useRef(false);
+  const simIntervalRef = useRef(null);
+  const rotaSimRef     = useRef([]);
+  const pollRef        = useRef(null);
+  const mapWrapperRef  = useRef(null);
+
+  useEffect(() => { onDurationRef.current  = onDurationFetched; }, [onDurationFetched]);
+  useEffect(() => { onProgressRef.current  = onProgress; },       [onProgress]);
+  useEffect(() => { onChegouRef.current    = onChegou; },         [onChegou]);
 
   const isPendente = status === "PENDENTE" || status === "Pendente";
 
-  // ── Pega GPS do cliente e traça rota inicial imediatamente ───────────────
+  // ── Listener para Tela Cheia ──────────────────────────────────────────────
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      mapWrapperRef.current?.requestFullscreen().catch(err => {
+        console.warn(`Erro ao tentar tela cheia: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  // ── Atualiza posição do caminhão e recalcula progresso ───────────────────
+  const atualizarTruck = useCallback(async (novaPosicao, isSimulacao = false) => {
+    if (chegouRef.current) return;
+
+    truckPosRef.current = novaPosicao;
+    setTruckPos([...novaPosicao]);
+
+    if (!userLocRef.current) return;
+
+    const distAtual = haversine(novaPosicao, userLocRef.current);
+
+    // Chegada
+    if (distAtual <= ARRIVAL_M) {
+      chegouRef.current = true;
+      onChegouRef.current?.();
+      if (isSimulacao) {
+        clearInterval(simIntervalRef.current);
+        setSimAtiva(false);
+      }
+      onProgressRef.current?.(0, 0);
+      return;
+    }
+
+    // Recalcula rota e tempo restante via OSRM
+    try {
+      const resultado = await buscarRota(novaPosicao, userLocRef.current);
+      if (resultado) {
+        setRouteCoords(resultado.coords);
+        onProgressRef.current?.(resultado.duracao, resultado.distancia);
+      }
+    } catch (e) { /* falha silenciosa */ }
+  }, []);
+
+  // ── GPS do cliente + rota inicial ────────────────────────────────────────
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
@@ -139,119 +188,194 @@ const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress }) => {
         setUserLoc(pos);
         userLocRef.current = pos;
 
-        // Traça rota da cooperativa → cliente logo que o GPS responder
         try {
-          const resultado = await buscarRota(truckPosRef.current, pos);
+          const resultado = await buscarRota(ECO_LOC, pos);
           if (resultado) {
             setRouteCoords(resultado.coords);
+            rotaSimRef.current     = resultado.coords;
             duracaoInicRef.current = resultado.duracao;
-            onDurationRef.current?.(resultado.duracao);
-            onProgressRef.current?.(resultado.duracao, resultado.duracao);
+            distInicRef.current    = resultado.distancia;
+            onDurationRef.current?.(resultado.duracao, resultado.distancia);
+            onProgressRef.current?.(resultado.duracao, resultado.distancia);
           }
         } catch (e) {
           console.warn("[MapaRastreio] Rota inicial:", e.message);
         }
       },
       (err) => {
-        console.error("GPS cliente:", err);
+        console.error("GPS:", err);
         alert("Ative a localização no navegador para usar o rastreio.");
       },
       { enableHighAccuracy: true, timeout: 20_000, maximumAge: 0 }
     );
   }, []);
 
-  // ── Polling: busca posição real do coletor no backend ────────────────────
+  // ── Polling do backend ────────────────────────────────────────────────────
   useEffect(() => {
-    if (isPendente || !coletaId) return;
+    if (isPendente || !coletaId || simAtiva) return;
 
     const poll = async () => {
+      if (chegouRef.current || simAtiva) return;
       try {
         const res = await fetch(
           `${API_BASE}/api/coletas/${coletaId}/localizacao`,
           { signal: AbortSignal.timeout(5_000) }
         );
         if (!res.ok) return;
-
-        const data = await res.json(); // { lat, lng }
+        const data = await res.json();
         if (!data?.lat || !data?.lng) return;
 
         const novaPosicao = [data.lat, data.lng];
-
-        // Só atualiza se o coletor realmente se moveu (>5m)
         const moveu = haversine(truckPosRef.current, novaPosicao) > 5;
         if (!moveu) return;
 
-        truckPosRef.current = novaPosicao;
-        setTruckPos(novaPosicao);
         setBackendVivo(true);
-
-        // Recalcula rota da nova posição do coletor até o cliente
-        if (userLocRef.current) {
-          try {
-            const resultado = await buscarRota(novaPosicao, userLocRef.current);
-            if (resultado) {
-              setRouteCoords(resultado.coords);
-
-              // Atualiza tempo restante
-              onProgressRef.current?.(
-                resultado.duracao,
-                duracaoInicRef.current ?? resultado.duracao
-              );
-            }
-          } catch (e) {
-            console.warn("[MapaRastreio] Rota atualizada:", e.message);
-          }
-        }
+        await atualizarTruck(novaPosicao, false);
       } catch (e) {
-        // backend ainda não implementou o endpoint — rota inicial já está visível
         console.warn("[MapaRastreio] Polling:", e.message);
       }
     };
 
-    poll(); // primeira chamada imediata
-    const intervalo = setInterval(poll, POLL_INTERVAL_MS);
-    return () => clearInterval(intervalo);
-  }, [coletaId, isPendente]);
+    poll();
+    pollRef.current = setInterval(poll, POLL_INTERVAL_MS);
+    return () => clearInterval(pollRef.current);
+  }, [coletaId, isPendente, simAtiva, atualizarTruck]);
+
+  // ── Simulação ─────────────────────────────────────────────────────────────
+  const iniciarSimulacao = async () => {
+    if (simAtiva || chegouRef.current) return;
+    clearInterval(pollRef.current); // pausa polling durante simulação
+
+    setSimLoading(true);
+    setSimAtiva(true);
+
+    let rota = rotaSimRef.current;
+    if (userLocRef.current) {
+      try {
+        const resultado = await buscarRota(truckPosRef.current, userLocRef.current);
+        if (resultado) {
+          rota = resultado.coords;
+          rotaSimRef.current = rota;
+        }
+      } catch (e) {
+        console.warn("[Simulação] Rota:", e.message);
+      }
+    }
+
+    setSimLoading(false);
+
+    if (rota.length < 2) {
+      setSimAtiva(false);
+      return;
+    }
+
+    setRouteCoords(rota);
+    let step = 0;
+    const total = rota.length;
+    const DURACAO_SIM_MS = 40_000;
+    const INTERVALO      = Math.max(60, Math.round(DURACAO_SIM_MS / total));
+    const INCREMENTO     = Math.max(1, Math.round(total / (DURACAO_SIM_MS / INTERVALO)));
+
+    simIntervalRef.current = setInterval(async () => {
+      step += INCREMENTO;
+      if (step >= total) step = total - 1;
+
+      const pos = rota[step];
+      await atualizarTruck(pos, true);
+
+      if (step >= total - 1 || chegouRef.current) {
+        clearInterval(simIntervalRef.current);
+        setSimAtiva(false);
+      }
+    }, INTERVALO);
+  };
+
+  const pararSimulacao = () => {
+    clearInterval(simIntervalRef.current);
+    setSimAtiva(false);
+    truckPosRef.current = ECO_LOC;
+    setTruckPos(ECO_LOC);
+    chegouRef.current = false;
+  };
+
+  useEffect(() => () => {
+    clearInterval(simIntervalRef.current);
+    clearInterval(pollRef.current);
+  }, []);
 
   return (
-    <MapContainer
-      center={ECO_LOC}
-      zoom={13}
-      style={{ height: "100%", width: "100%", borderRadius: "16px" }}
-      zoomControl
-      scrollWheelZoom
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-
-      <AjustarCamera userLoc={userLoc} truckPos={truckPos} />
-
-      {/* Rota azul do coletor até o cliente */}
-      {routeCoords.length > 1 && (
-        <Polyline
-          positions={routeCoords}
-          color="#4a90e2"
-          weight={5}
-          opacity={0.8}
+    <div className="mapar-wrapper" ref={mapWrapperRef}>
+      <MapContainer
+        center={ECO_LOC}
+        zoom={13}
+        style={{ height: "100%", width: "100%", borderRadius: "16px" }}
+        zoomControl
+        scrollWheelZoom
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-      )}
 
-      {/* Marcador do cliente */}
-      {userLoc && (
-        <Marker position={userLoc} icon={clienteIcon}>
-          <Popup>📍 Seu endereço</Popup>
+        <AjustarCamera userLoc={userLoc} truckPos={truckPos} />
+
+        {routeCoords.length > 1 && (
+          <Polyline positions={routeCoords} color="#4a90e2" weight={5} opacity={0.82} />
+        )}
+
+        {userLoc && (
+          <Marker position={userLoc} icon={clienteIcon}>
+            <Popup>📍 Seu endereço</Popup>
+          </Marker>
+        )}
+
+        <Marker position={truckPos} icon={truckIcon}>
+          <Popup>
+            🚛 {backendVivo
+              ? "Posição em tempo real"
+              : simAtiva
+              ? "Simulação em andamento"
+              : "Aguardando coletor…"}
+          </Popup>
         </Marker>
-      )}
+      </MapContainer>
 
-      {/* Marcador do coletor */}
-      <Marker position={truckPos} icon={truckIcon}>
-        <Popup>
-          🚛 {backendVivo ? "Posição em tempo real" : "Aguardando localização do coletor…"}
-        </Popup>
-      </Marker>
-    </MapContainer>
+      {/* ── Badge de status ──────────────────────────────────────────── */}
+      <div className={`mapar-badge ${simAtiva ? "mapar-badge--sim" : ""}`}>
+        <span className="mapar-badge-dot" />
+        {simAtiva
+          ? simLoading ? "Calculando rota…" : "🎮 Simulação ativa"
+          : backendVivo
+          ? "🔴 Ao vivo"
+          : "Aguardando coletor…"}
+      </div>
+
+      {/* ── Botão Tela Cheia ──────────────────────────────────────────── */}
+      <button 
+        className="mapar-fullscreen-btn" 
+        onClick={toggleFullscreen}
+        title={isFullscreen ? "Sair da Tela Cheia" : "Tela Cheia"}
+      >
+        {isFullscreen ? "↙️" : "↗️"}
+      </button>
+
+      {/* ── Botão simulação ──────────────────────────────────────────── */}
+      {!chegouRef.current && (
+        <div className="mapar-sim-bar">
+          {simAtiva ? (
+            <button className="mapar-sim-btn mapar-sim-btn--stop" onClick={pararSimulacao}>
+              {simLoading
+                ? <><span className="mapar-spinner-sm" /> Calculando…</>
+                : "■ Parar simulação"}
+            </button>
+          ) : (
+            <button className="mapar-sim-btn" onClick={iniciarSimulacao}>
+              ▶ Simular chegada
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 

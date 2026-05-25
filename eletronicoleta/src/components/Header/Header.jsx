@@ -117,14 +117,18 @@ const Header = () => {
     };
   }, []);
 
-  const linkDashboard =
+   const linkDashboard =
     usuarioLogado?.tipoUsuario === "COOPERATIVA"
       ? "/painel-cooperativa"
+      : usuarioLogado?.tipoUsuario === "COLETOR"
+      ? "/coletor"
       : "/minha-conta";
 
   const linkDoPerfil =
     usuarioLogado?.tipoUsuario === "COOPERATIVA"
       ? "/conta-cooperativa"
+      : usuarioLogado?.tipoUsuario === "COLETOR"
+      ? "/coletor"
       : "/minha-conta";
 
   useEffect(() => {

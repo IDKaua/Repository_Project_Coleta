@@ -6,12 +6,19 @@ import MapaRastreio from "./MapaRastreio";
 
 const Rastreio = () => {
   const navigate = useNavigate();
-  const [coletaAtiva, setColetaAtiva]     = useState(null);
-  const [carregando, setCarregando]       = useState(true);
+  const [coletaAtiva, setColetaAtiva] = useState(null);
+  const [carregando, setCarregando]   = useState(true);
 
-  // Duração total da rota (segundos) e progresso 0→1 vindos do MapaRastreio
-  const [rotaDuracao, setRotaDuracao]     = useState(null);
-  const [rotaProgresso, setRotaProgresso] = useState(0);
+  // Duração e distância INICIAL da rota (vinda do OSRM no primeiro cálculo)
+  const [duracaoInicial,  setDuracaoInicial]  = useState(null);
+  const [distanciaInicial,setDistanciaInicial]= useState(null);
+
+  // Valores RESTANTES atualizados a cada movimento do coletor
+  const [duracaoRestante,  setDuracaoRestante]  = useState(null);
+  const [distanciaRestante,setDistanciaRestante]= useState(null);
+
+  // Chegada: só vira true quando MapaRastreio chama onChegou
+  const [chegou, setChegou] = useState(false);
 
   const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
 
@@ -38,13 +45,41 @@ const Rastreio = () => {
     buscarColeta();
   }, [usuarioLogado?.id]);
 
-  // Tempo restante em minutos, diminui conforme o caminhão avança
-  const tempoRestante =
-    rotaDuracao != null
-      ? Math.max(0, Math.round((rotaDuracao * (1 - rotaProgresso)) / 60))
+  // Chamado uma vez quando a rota inicial é calculada
+  const handleDurationFetched = (segundos, metros) => {
+    setDuracaoInicial(segundos);
+    setDistanciaInicial(metros);
+    setDuracaoRestante(segundos);
+    setDistanciaRestante(metros);
+  };
+
+  // Chamado a cada atualização de posição do coletor
+  // onProgress(segundos_restantes, metros_restantes)
+  const handleProgress = (segundos, metros) => {
+    setDuracaoRestante(segundos);
+    setDistanciaRestante(metros);
+  };
+
+  // Chamado somente quando o caminhão realmente chegou (dentro do raio de 60m)
+  const handleChegou = () => {
+    setChegou(true);
+    setDuracaoRestante(0);
+    setDistanciaRestante(0);
+  };
+
+  // Tempo em minutos para exibição
+  const tempoMin =
+    duracaoRestante != null
+      ? Math.max(0, Math.round(duracaoRestante / 60))
       : null;
 
-  const chegou = rotaProgresso >= 1;
+  // Distância em km ou metros
+  const distLabel =
+    distanciaRestante != null
+      ? distanciaRestante >= 1000
+        ? `${(distanciaRestante / 1000).toFixed(1)} km`
+        : `${Math.round(distanciaRestante)} m`
+      : null;
 
   const handleConcluir = async () => {
     if (!coletaAtiva) return;
@@ -107,12 +142,11 @@ const Rastreio = () => {
 
         <div className="rastreio-content">
 
-          {/* ── LADO ESQUERDO: cards ──────────────────────────────────── */}
+          {/* ── ESQUERDA: cards ─────────────────────────────────────── */}
           <div className="rastreio-left">
 
             {isPendente ? (
               <>
-                {/* Card aguardando cooperativa */}
                 <div className="r-card r-card--amarelo">
                   <div className="r-card-header">
                     <span className="pulse-dot-yellow" />
@@ -125,7 +159,6 @@ const Rastreio = () => {
                   </p>
                 </div>
 
-                {/* Stepper */}
                 <div className="r-card">
                   <p className="r-card-subtitulo">ETAPAS DA SOLICITAÇÃO</p>
                   <div className="stepper-vertical">
@@ -143,7 +176,7 @@ const Rastreio = () => {
               </>
             ) : (
               <>
-                {/* Card do coletor */}
+                {/* Card coletor */}
                 <div className="r-card r-card--coletor">
                   <div className="r-rating-pill">⭐ 4.8</div>
                   <div className="r-coletor-header">
@@ -163,39 +196,43 @@ const Rastreio = () => {
                   </div>
                 </div>
 
-                {/* Card de tempo / chegada */}
+                {/* Card tempo — aguarda rota antes de mostrar qualquer coisa */}
                 <div className="r-card r-card--status">
                   <div className="r-status-header">
                     <i className="fas fa-clock" />
-                    <span>
-                      {chegou ? "Coletor Chegou!" : "Previsão de Chegada"}
-                    </span>
+                    <span>{chegou ? "Coletor Chegou!" : "Previsão de Chegada"}</span>
                   </div>
 
-                  {!chegou ? (
-                    <>
-                      <p className="r-tempo">
-                        {tempoRestante != null ? `${tempoRestante} min` : "..."}
-                      </p>
-                      <p className="r-tempo-sub">O coletor está a caminho</p>
-                    </>
-                  ) : (
+                  {chegou ? (
+                    /* ── CHEGADA ── */
                     <>
                       <p className="r-chegou">Seu coletor chegou! 🎉</p>
                       <p className="r-tempo-sub">Entregue os resíduos ao coletor</p>
-                      <button
-                        className="r-btn-confirmar"
-                        onClick={handleConcluir}
-                      >
+                      <button className="r-btn-confirmar" onClick={handleConcluir}>
                         CONFIRMAR COLETA
                       </button>
+                    </>
+                  ) : duracaoRestante === null ? (
+                    /* ── AGUARDANDO ROTA ── mostra "..." até OSRM responder */
+                    <>
+                      <p className="r-tempo">...</p>
+                      <p className="r-tempo-sub">Calculando rota…</p>
+                    </>
+                  ) : (
+                    /* ── EM ROTA ── */
+                    <>
+                      <p className="r-tempo">{tempoMin} min</p>
+                      {distLabel && (
+                        <p className="r-tempo-dist">{distLabel} restantes</p>
+                      )}
+                      <p className="r-tempo-sub">O coletor está a caminho</p>
                     </>
                   )}
                 </div>
               </>
             )}
 
-            {/* Resumo da coleta (sempre visível) */}
+            {/* Resumo */}
             <div className="r-card">
               <p className="r-card-subtitulo">RESUMO DA COLETA</p>
 
@@ -230,14 +267,14 @@ const Rastreio = () => {
 
           </div>
 
-          {/* ── LADO DIREITO: mapa ───────────────────────────────────── */}
+          {/* ── DIREITA: mapa ────────────────────────────────────────── */}
           <div className="rastreio-mapa-wrapper">
             <MapaRastreio
+              coletaId={coletaAtiva.id}
               status={coletaAtiva.status}
-              onDurationFetched={(s) => setRotaDuracao(s)}
-              onProgress={(atual, total) =>
-                total > 0 && setRotaProgresso(atual / total)
-              }
+              onDurationFetched={handleDurationFetched}
+              onProgress={handleProgress}
+              onChegou={handleChegou}
             />
           </div>
 
