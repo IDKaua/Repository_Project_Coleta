@@ -11,7 +11,10 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./MapaRastreio.css";
 
-// ── Corrige ícones padrão do Leaflet ─────────────────────────────────────
+// ── ALTERADO: Conectores do WebSocket ────────────────────────────────────
+import SockJS from "sockjs-client";
+import { Stomp } from "@stomp/stompjs";
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -20,13 +23,9 @@ L.Icon.Default.mergeOptions({
 });
 
 const API_BASE         = "http://localhost:8080";
-const POLL_INTERVAL_MS = 4000;
-// Posição de partida do coletor (cooperativa em Maceió)
 const ECO_LOC          = [-9.654, -35.7315];
-// Raio de chegada em metros
 const ARRIVAL_M        = 60;
 
-// ── Ícone caminhão ────────────────────────────────────────────────────────
 const truckIcon = L.divIcon({
   className: "",
   html: `<div class="mapa-icon mapa-icon--truck">🚛</div>`,
@@ -35,7 +34,6 @@ const truckIcon = L.divIcon({
   popupAnchor:[0, -26],
 });
 
-// ── Ícone cliente ─────────────────────────────────────────────────────────
 const clienteIcon = L.divIcon({
   className: "",
   html: `<div class="mapa-icon mapa-icon--cliente">EU</div>`,
@@ -44,7 +42,6 @@ const clienteIcon = L.divIcon({
   popupAnchor:[0, -46],
 });
 
-// ── Haversine ─────────────────────────────────────────────────────────────
 function haversine([lat1, lon1], [lat2, lon2]) {
   const R = 6_371_000;
   const r = d => (d * Math.PI) / 180;
@@ -55,7 +52,6 @@ function haversine([lat1, lon1], [lat2, lon2]) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// ── Busca rota OSRM ───────────────────────────────────────────────────────
 async function buscarRota(from, to) {
   const url =
     `https://router.project-osrm.org/route/v1/driving/` +
@@ -66,14 +62,13 @@ async function buscarRota(from, to) {
   if (data.routes?.[0]) {
     return {
       coords:  data.routes[0].geometry.coordinates.map(([lon, lat]) => [lat, lon]),
-      duracao: data.routes[0].duration,   // segundos
-      distancia: data.routes[0].distance, // metros
+      duracao: data.routes[0].duration,   
+      distancia: data.routes[0].distance, 
     };
   }
   return null;
 }
 
-// ── Câmera ────────────────────────────────────────────────────────────────
 function AjustarCamera({ userLoc, truckPos }) {
   const map    = useMap();
   const fitted = useRef(false);
@@ -99,13 +94,12 @@ function AjustarCamera({ userLoc, truckPos }) {
 }
 
 const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress, onChegou }) => {
-  const [userLoc,     setUserLoc]     = useState(null);
-  const [truckPos,    setTruckPos]    = useState(ECO_LOC);
+  const [userLoc,      setUserLoc]     = useState(null);
+  const [truckPos,     setTruckPos]    = useState(ECO_LOC);
   const [routeCoords, setRouteCoords] = useState([]);
   const [backendVivo, setBackendVivo] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Simulação
   const [simAtiva,    setSimAtiva]    = useState(false);
   const [simLoading,  setSimLoading]  = useState(false);
 
@@ -119,8 +113,10 @@ const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress, onChego
   const chegouRef      = useRef(false);
   const simIntervalRef = useRef(null);
   const rotaSimRef     = useRef([]);
-  const pollRef        = useRef(null);
   const mapWrapperRef  = useRef(null);
+
+  // ── ALTERADO: Ref para guardar a instância ativa do STOMP ───────────────
+  const stompClientRef = useRef(null);
 
   useEffect(() => { onDurationRef.current  = onDurationFetched; }, [onDurationFetched]);
   useEffect(() => { onProgressRef.current  = onProgress; },       [onProgress]);
@@ -128,7 +124,6 @@ const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress, onChego
 
   const isPendente = status === "PENDENTE" || status === "Pendente";
 
-  // ── Listener para Tela Cheia ──────────────────────────────────────────────
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -147,7 +142,6 @@ const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress, onChego
     }
   };
 
-  // ── Atualiza posição do caminhão e recalcula progresso ───────────────────
   const atualizarTruck = useCallback(async (novaPosicao, isSimulacao = false) => {
     if (chegouRef.current) return;
 
@@ -158,7 +152,6 @@ const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress, onChego
 
     const distAtual = haversine(novaPosicao, userLocRef.current);
 
-    // Chegada
     if (distAtual <= ARRIVAL_M) {
       chegouRef.current = true;
       onChegouRef.current?.();
@@ -170,17 +163,15 @@ const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress, onChego
       return;
     }
 
-    // Recalcula rota e tempo restante via OSRM
     try {
       const resultado = await buscarRota(novaPosicao, userLocRef.current);
       if (resultado) {
         setRouteCoords(resultado.coords);
         onProgressRef.current?.(resultado.duracao, resultado.distancia);
       }
-    } catch (e) { /* falha silenciosa */ }
+    } catch (e) { }
   }, []);
 
-  // ── GPS do cliente + rota inicial ────────────────────────────────────────
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
@@ -210,41 +201,39 @@ const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress, onChego
     );
   }, []);
 
-  // ── Polling do backend ────────────────────────────────────────────────────
+  // ── ALTERADO: Conexão WebSocket no lugar do Polling Antigo ───────────────
   useEffect(() => {
     if (isPendente || !coletaId || simAtiva) return;
 
-    const poll = async () => {
-      if (chegouRef.current || simAtiva) return;
-      try {
-        const res = await fetch(
-          `${API_BASE}/api/coletas/${coletaId}/localizacao`,
-          { signal: AbortSignal.timeout(5_000) }
-        );
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!data?.lat || !data?.lng) return;
+    const socket = new SockJS(`${API_BASE}/ws`);
+    const stompClient = Stomp.over(socket);
+    stompClient.debug = () => {}; // Desativa logs repetitivos de frame no console
 
-        const novaPosicao = [data.lat, data.lng];
-        const moveu = haversine(truckPosRef.current, novaPosicao) > 5;
-        if (!moveu) return;
+    stompClient.connect({}, () => {
+      stompClientRef.current = stompClient;
+      setBackendVivo(true);
 
-        setBackendVivo(true);
-        await atualizarTruck(novaPosicao, false);
-      } catch (e) {
-        console.warn("[MapaRastreio] Polling:", e.message);
-      }
+      // Ouvinte em tempo real da rota específica dessa coleta
+      stompClient.subscribe(`/topic/rastreio/${coletaId}`, (msg) => {
+        const data = JSON.parse(msg.body);
+        if (data?.lat && data?.lng) {
+          const novaPosicao = [data.lat, data.lng];
+          // Evita processar micro-movimentos falsos menores que 2 metros
+          if (haversine(truckPosRef.current, novaPosicao) > 2) {
+            atualizarTruck(novaPosicao, false);
+          }
+        }
+      });
+    });
+
+    return () => {
+      if (stompClientRef.current) stompClientRef.current.disconnect();
     };
-
-    poll();
-    pollRef.current = setInterval(poll, POLL_INTERVAL_MS);
-    return () => clearInterval(pollRef.current);
   }, [coletaId, isPendente, simAtiva, atualizarTruck]);
 
   // ── Simulação ─────────────────────────────────────────────────────────────
   const iniciarSimulacao = async () => {
     if (simAtiva || chegouRef.current) return;
-    clearInterval(pollRef.current); // pausa polling durante simulação
 
     setSimLoading(true);
     setSimAtiva(true);
@@ -283,6 +272,16 @@ const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress, onChego
       const pos = rota[step];
       await atualizarTruck(pos, true);
 
+      // ALTERADO: Transmite os passos da simulação para a rede.
+      // Assim, se você abrir duas telas, uma tela controla a simulação e a outra se move sozinha!
+      if (stompClientRef.current && stompClientRef.current.connected) {
+        stompClientRef.current.send(
+          `/app/rastreio/${coletaId}/atualizar`,
+          {},
+          JSON.stringify({ lat: pos[0], lng: pos[1] })
+        );
+      }
+
       if (step >= total - 1 || chegouRef.current) {
         clearInterval(simIntervalRef.current);
         setSimAtiva(false);
@@ -300,7 +299,6 @@ const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress, onChego
 
   useEffect(() => () => {
     clearInterval(simIntervalRef.current);
-    clearInterval(pollRef.current);
   }, []);
 
   return (
@@ -331,7 +329,7 @@ const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress, onChego
 
         <Marker position={truckPos} icon={truckIcon}>
           <Popup>
-            🚛 {backendVivo
+            Work 🚛 {backendVivo
               ? "Posição em tempo real"
               : simAtiva
               ? "Simulação em andamento"
@@ -340,7 +338,6 @@ const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress, onChego
         </Marker>
       </MapContainer>
 
-      {/* ── Badge de status ──────────────────────────────────────────── */}
       <div className={`mapar-badge ${simAtiva ? "mapar-badge--sim" : ""}`}>
         <span className="mapar-badge-dot" />
         {simAtiva
@@ -350,7 +347,6 @@ const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress, onChego
           : "Aguardando coletor…"}
       </div>
 
-      {/* ── Botão Tela Cheia ──────────────────────────────────────────── */}
       <button 
         className="mapar-fullscreen-btn" 
         onClick={toggleFullscreen}
@@ -359,7 +355,6 @@ const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress, onChego
         {isFullscreen ? "↙️" : "↗️"}
       </button>
 
-      {/* ── Botão simulação ──────────────────────────────────────────── */}
       {!chegouRef.current && (
         <div className="mapar-sim-bar">
           {simAtiva ? (
