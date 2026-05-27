@@ -307,7 +307,7 @@ header {
   position: relative;
   z-index: 1;
   max-width: 900px;
-  margin-top: -180px;
+  margin-top: 60px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -339,7 +339,7 @@ header {
  
 /* ── Scroll indicator: verde do ícone + pílula de vidro ── */
 .scroll-indicator {
-  color: #ffffff;
+  color: #22f834;
   font-weight: 700;
   letter-spacing: 0.3px;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
@@ -357,6 +357,7 @@ header {
   gap: 8px;
   width: fit-content;
   margin: 0 auto;
+  margin-top: 50px;
 }
  
 .scroll-indicator i {

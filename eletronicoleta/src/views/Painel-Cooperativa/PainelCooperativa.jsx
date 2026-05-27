@@ -130,6 +130,33 @@ const PainelCooperativa = () => {
       toast.error("Erro ao finalizar.");
     }
   };
+ const handleExcluirColeta = async (id) => {
+  try {
+    const response = await fetch(
+      `http://localhost:8080/api/coletas/excluir/${id}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    const mensagem = await response.text();
+
+    if (response.ok) {
+      toast.success(mensagem);
+
+      setColetas((prev) =>
+        prev.filter((c) => c.id !== id)
+      );
+    } else {
+      console.error(mensagem);
+      toast.error(mensagem);
+    }
+
+  } catch (error) {
+    console.error(error);
+    toast.error("Erro ao conectar ao servidor");
+  }
+};
 
   return (
     <div className="painel-wrapper">
@@ -167,6 +194,7 @@ const PainelCooperativa = () => {
                     ref={filaColetasRef}
                     coletas={coletas}
                     onFinalizar={handleFinalizarColeta}
+                    onExcluir={handleExcluirColeta}
                     onSelectColeta={(id) => {
                       setColetaParaAtribuir(id);
 

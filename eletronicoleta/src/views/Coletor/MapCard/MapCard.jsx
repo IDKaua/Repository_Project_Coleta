@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polyline, useMap, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./MapCard.css";
@@ -25,11 +25,12 @@ const truckIcon = L.divIcon({
   iconAnchor: [24, 24],
 });
 
-const clienteIcon = L.divIcon({
+const coletaIcon = L.divIcon({
   className: "",
-  html: `<div class="mapa-icon mapa-icon--cliente">EU</div>`,
+  html: `<div class="mapa-icon mapa-icon--coleta" style="background:#27ae60; color:white; border-radius:50%; width:44px; height:44px; display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow:0 4px 10px rgba(0,0,0,0.3); border:2px solid white;">📦</div>`,
   iconSize:   [44, 44],
   iconAnchor: [22, 44],
+  popupAnchor:[0, -46],
 });
 
 function haversine([lat1, lon1], [lat2, lon2]) {
@@ -40,11 +41,15 @@ function haversine([lat1, lon1], [lat2, lon2]) {
 }
 
 async function buscarRota(from, to) {
-  const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson&annotations=true`;
-  const res  = await fetch(url, { signal: AbortSignal.timeout(12_000) });
-  const data = await res.json();
-  if (data.routes?.[0]) {
-    return data.routes[0].geometry.coordinates.map(([lon, lat]) => [lat, lon]);
+  try {
+    const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson&annotations=true`;
+    const res  = await fetch(url, { signal: AbortSignal.timeout(12_000) });
+    const data = await res.json();
+    if (data.routes?.[0]) {
+      return data.routes[0].geometry.coordinates.map(([lon, lat]) => [lat, lon]);
+    }
+  } catch (e) {
+    console.error("Erro OSRM:", e);
   }
   return [];
 }
@@ -75,29 +80,35 @@ function AjustarCamera({ userLoc, truckPos }) {
   return null;
 }
 
-// Recebendo a 'coleta' completa nas props agora!
 const MapCard = ({ coleta, coletaId, onChegou, coletado }) => {
-  // O destino começa num local padrão, mas será atualizado
-  const [destinoLoc, setDestinoLoc] = useState([-9.6658, -35.7350]); 
+  const [destinoLoc, setDestinoLoc] = useState(() => {
+    if (coleta?.latitude && coleta?.longitude) {
+      return [coleta.latitude, coleta.longitude];
+    }
+    return null;
+  }); 
   
   const [truckPos, setTruckPos] = useState(ECO_LOC);
   const [routeCoords, setRouteCoords] = useState([]);
   const [transmitindo, setTransmitindo] = useState(false);
 
-  const truckPosRef    = useRef(ECO_LOC);
-  const chegouRef      = useRef(false);
-  const watchIdRef     = useRef(null); 
-  const stompClientRef = useRef(null);
-  const onChegouRef    = useRef(onChegou);
+  const truckPosRef          = useRef(ECO_LOC);
+  const chegouRef            = useRef(false);
+  const watchIdRef           = useRef(null); 
+  const stompClientRef       = useRef(null);
+  const onChegouRef          = useRef(onChegou);
+  const destinoLocRef        = useRef(destinoLoc);
+  const ultimaPosicaoRotaRef = useRef(null);
+  const cronometroRef        = useRef(null); // Ref do temporizador de 1 segundo
 
   useEffect(() => { onChegouRef.current = onChegou; }, [onChegou]);
+  useEffect(() => { destinoLocRef.current = destinoLoc; }, [destinoLoc]);
 
-  // ── MÁGICA: TRANSFORMA ENDEREÇO EM COORDENADA (Geocoding) ────────────────
   useEffect(() => {
-    if (coleta && coleta.endereco) {
-      // Limpa a string tirando o "(Ref: ...)" para a API achar mais fácil
+    if (coleta?.latitude && coleta?.longitude) {
+      setDestinoLoc([coleta.latitude, coleta.longitude]);
+    } else if (coleta && coleta.endereco) {
       const enderecoLimpo = coleta.endereco.split(" (Ref:")[0];
-      
       fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(enderecoLimpo)}&format=json&limit=1`)
         .then(res => res.json())
         .then(data => {
@@ -105,28 +116,37 @@ const MapCard = ({ coleta, coletaId, onChegou, coletado }) => {
             setDestinoLoc([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
           }
         })
-        .catch(err => console.error("Erro ao buscar coordenadas do destino:", err));
+        .catch(err => console.error("Erro geocoding:", err));
     }
   }, [coleta]);
 
-  // Atualiza usando o destinoLoc dinâmico
   const atualizarTruck = useCallback(async (novaPosicao) => {
     if (chegouRef.current) return;
     truckPosRef.current = novaPosicao;
     setTruckPos([...novaPosicao]);
 
-    const distAtual = haversine(novaPosicao, destinoLoc);
+    const destinoAtual = destinoLocRef.current;
+    if(!destinoAtual) return;
+
+    const distAtual = haversine(novaPosicao, destinoAtual);
 
     if (distAtual <= ARRIVAL_M) {
       chegouRef.current = true;
+      setRouteCoords([]);
+      if (onChegouRef.current) onChegouRef.current();
       return;
     }
 
-    try {
-      const rota = await buscarRota(novaPosicao, destinoLoc);
-      if (rota.length > 1) setRouteCoords(rota);
-    } catch (e) { }
-  }, [destinoLoc]); // <-- Importante: dependência atualizada
+    // Sensibilidade alterada para 5 metros
+    if (!ultimaPosicaoRotaRef.current || haversine(ultimaPosicaoRotaRef.current, novaPosicao) > 5) {
+      ultimaPosicaoRotaRef.current = novaPosicao;
+      setRouteCoords([]);
+      try {
+        const rota = await buscarRota(novaPosicao, destinoAtual);
+        if (rota.length > 1) setRouteCoords(rota);
+      } catch (e) { }
+    }
+  }, []);
 
   useEffect(() => {
     if (!coletaId) return;
@@ -154,27 +174,42 @@ const MapCard = ({ coleta, coletaId, onChegou, coletado }) => {
     }
 
     setTransmitindo(true);
+    let ultimaPosicaoConhecida = null;
 
+    // Fica lendo o GPS silenciosamente
     watchIdRef.current = navigator.geolocation.watchPosition(
-      async (posicao) => {
-        const novaPosicao = [posicao.coords.latitude, posicao.coords.longitude];
-        await atualizarTruck(novaPosicao);
+      (posicao) => {
+        ultimaPosicaoConhecida = [posicao.coords.latitude, posicao.coords.longitude];
+      },
+      (erro) => console.error("Erro GPS:", erro),
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+    );
+
+    // Dispara a última posição lida exatamente a cada 1 segundo (1000 ms)
+    cronometroRef.current = setInterval(async () => {
+      if (ultimaPosicaoConhecida) {
+        await atualizarTruck(ultimaPosicaoConhecida);
 
         if (stompClientRef.current && stompClientRef.current.connected) {
           stompClientRef.current.send(
-            `/app/rastreio/${coletaId}/atualizar`,
+            `/topic/rastreio/${coletaId}`,
             {},
-            JSON.stringify({ lat: novaPosicao[0], lng: novaPosicao[1] })
+            JSON.stringify({ lat: ultimaPosicaoConhecida[0], lng: ultimaPosicaoConhecida[1] })
           );
         }
-      },
-      (erro) => console.error("Erro no GPS Coletor:", erro),
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
-    );
+      }
+    }, 1000);
   };
 
   const pararRota = () => {
-    if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
+    if (watchIdRef.current) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    if (cronometroRef.current) {
+      clearInterval(cronometroRef.current);
+      cronometroRef.current = null;
+    }
     setTransmitindo(false);
   };
 
@@ -194,18 +229,17 @@ const MapCard = ({ coleta, coletaId, onChegou, coletado }) => {
         alert("Erro ao finalizar a coleta no servidor.");
       }
     } catch (error) {
-      console.error(error);
       alert("Erro de conexão ao tentar finalizar.");
     }
   };
 
   useEffect(() => () => {
     if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
+    if (cronometroRef.current) clearInterval(cronometroRef.current);
   }, []);
 
   return (
     <div style={{ height: "500px", width: "100%", borderRadius: "16px", overflow: "hidden", position: "relative", border: "2px solid #e2e8f0" }}>
-      
       <MapContainer center={ECO_LOC} zoom={14} style={{ height: "100%", width: "100%" }} zoomControl scrollWheelZoom>
         <MapResizer />
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -215,8 +249,12 @@ const MapCard = ({ coleta, coletaId, onChegou, coletado }) => {
           <Polyline positions={routeCoords} color="#4a90e2" weight={5} opacity={0.8} />
         )}
         
-        {/* Usando o destino dinâmico aqui */}
-        <Marker position={destinoLoc} icon={clienteIcon}></Marker>
+        {destinoLoc && (
+          <Marker position={destinoLoc} icon={coletaIcon}>
+             <Popup>📦 Ponto de Coleta</Popup>
+          </Marker>
+        )}
+
         <Marker position={truckPos} icon={truckIcon}></Marker>
       </MapContainer>
 

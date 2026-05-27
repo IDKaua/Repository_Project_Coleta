@@ -10,7 +10,6 @@ import UploadFotos from "./UploadFotos";
 import InfoLixo from "./InfoLixo";
 import Agendamento from "./Agendamento";
 
-// Corrige o ícone do Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -18,11 +17,9 @@ L.Icon.Default.mergeOptions({
   shadowUrl:     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-// Sub-componente mágico que escuta o clique e centraliza a câmera
 function LocationMarker({ posicao, setPosicao, setEnderecoFormatado }) {
   const map = useMap();
 
-  // Faz a câmera do mapa "voar" para a posição sempre que ela mudar (ex: ao clicar no botão de GPS)
   useEffect(() => {
     if (posicao) {
       map.flyTo(posicao, 16, { animate: true, duration: 1.5 });
@@ -87,7 +84,6 @@ const SolicitarColeta = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ── NOVA FUNÇÃO: Botão de GPS do Usuário ────────────────────────────────
   const pegarLocalizacaoAtual = () => {
     if (!("geolocation" in navigator)) {
       alert("Seu navegador não suporta GPS.");
@@ -100,7 +96,7 @@ const SolicitarColeta = () => {
       async (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-        setPosicaoExata([lat, lng]); // Isso já vai fazer o mapa voar para lá automaticamente
+        setPosicaoExata([lat, lng]); 
 
         try {
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
@@ -113,7 +109,7 @@ const SolicitarColeta = () => {
       },
       (error) => {
         console.error("Erro GPS:", error);
-        alert("Não foi possível obter sua localização. Verifique as permissões do navegador.");
+        alert("Não foi possível obter sua localização. Verifique as permissões.");
         setBuscandoGPS(false);
       },
       { enableHighAccuracy: true }
@@ -134,6 +130,8 @@ const SolicitarColeta = () => {
       telefone: formData.telefone || usuarioLogado?.telefone || "",
       tipoResiduo: formData.tipo_residuo,
       descricao: `Coleta de ${formData.quantidade} item(ns) porte ${formData.porte}. Agendamento: ${formData.data || ""} ${formData.hora || ""}`,
+      latitude: posicaoExata[0],
+      longitude: posicaoExata[1]
     };
 
     try {
@@ -175,7 +173,6 @@ const SolicitarColeta = () => {
             <div className="coluna-direita">
               <div className="r-card" style={{ padding: '15px' }}>
                 
-                {/* ── CABEÇALHO DO MAPA COM O BOTÃO NOVO ────────────────────── */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                   <p style={{ fontWeight: 'bold', margin: 0 }}>Local da Coleta:</p>
                   

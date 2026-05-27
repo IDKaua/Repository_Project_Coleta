@@ -15,7 +15,17 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/coletas")
-@CrossOrigin(origins = "*")
+@CrossOrigin(
+    origins = "http://localhost:5173",
+    allowedHeaders = "*",
+    methods = {
+        RequestMethod.GET,
+        RequestMethod.POST,
+        RequestMethod.PUT,
+        RequestMethod.DELETE,
+        RequestMethod.OPTIONS
+    }
+)
 public class ColetaController {
 
     @Autowired
@@ -127,4 +137,26 @@ public class ColetaController {
     public List<Coleta> getColetasAtivasDoColetor(@PathVariable Long coletorId) {
         return coletaRepository.findByColetorIdAndStatusNot(coletorId, "COLETADO");
     }
+    @DeleteMapping("/excluir/{coletaId}")
+    public ResponseEntity<?> excluirColeta(@PathVariable Long coletaId) {
+
+    try {
+        Optional<Coleta> coletaOpt = coletaRepository.findById(coletaId);
+
+        if (coletaOpt.isEmpty()) {
+            return ResponseEntity.status(404)
+                    .body("Coleta não encontrada!");
+        }
+
+        coletaRepository.deleteById(coletaId);
+
+        return ResponseEntity.ok("Coleta excluída com sucesso!");
+
+    } catch (Exception e) {
+        e.printStackTrace();
+
+        return ResponseEntity.status(500)
+                .body("Erro ao excluir: " + e.getMessage());
+    }
+}
 }

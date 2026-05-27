@@ -64,6 +64,35 @@ const Cadastro = () => {
     setFormData({ ...formData, [name]: formattedValue });
   };
 
+  // --- FUNÇÃO PARA BUSCAR CEP ---
+  const buscarCEP = async (cepBuscado) => {
+    // Remove qualquer coisa que não seja número
+    const cepLimpo = cepBuscado.replace(/\D/g, "");
+
+    // Só faz a busca se o CEP tiver 8 dígitos
+    if (cepLimpo.length !== 8) return;
+
+    try {
+      const resposta = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+      const dados = await resposta.json();
+
+      if (dados.erro) {
+        alert("CEP inválido ou não encontrado!");
+      } else {
+        // Atualiza o estado com os dados retornados pela API
+        setFormData((prevData) => ({
+          ...prevData,
+          endereco: dados.logradouro || '', // Se quiser incluir o bairro, pode concatenar aqui
+          cidade: dados.localidade || '',
+          estado: dados.uf || ''
+        }));
+      }
+    } catch (erro) {
+      console.error("Erro ao buscar o CEP:", erro);
+      alert("Erro ao validar o CEP. Verifique sua conexão.");
+    }
+  };
+
   // --- A MÁGICA DA INTEGRAÇÃO DO CADASTRO ---
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -82,7 +111,7 @@ const Cadastro = () => {
     const dadosParaOJava = {
       nome: formData.nome,
       email: formData.email,
-      documento: formData.identificador, // Passamos o identificador como 'documento'
+      documento: formData.identificador, 
       telefone: formData.telefone,
       endereco: formData.endereco,
       cep: formData.cep,
@@ -90,7 +119,6 @@ const Cadastro = () => {
       cidade: formData.cidade,
       estado: formData.estado,
       senha: formData.senha,
-      // A grande sacada: se isCooperativa for verdadeiro, manda "COOPERATIVA", senão, "MORADOR"
       tipoUsuario: isCooperativa ? "COOPERATIVA" : "MORADOR" 
     };
 
@@ -107,9 +135,8 @@ const Cadastro = () => {
       // 3. O React lê o que o Java respondeu
       if (resposta.ok) {
         alert("Cadastro concluído com sucesso! Bem-vindo(a) ao EcoTech.");
-        navigate('/login'); // Se deu certo, joga o usuário para a tela de Login
+        navigate('/login'); 
       } else if (resposta.status === 500) {
-        // Aquele nosso erro clássico de quando o CPF/CNPJ já existe no banco
         alert("Ops! Este documento ou e-mail já está cadastrado no sistema.");
       } else {
         alert("Erro ao realizar o cadastro. Tente novamente.");
@@ -172,13 +199,22 @@ const Cadastro = () => {
           </div>
 
           <div className="input-row">
+            <div className="input-field flex-2">
+              <label>CEP</label>
+              {/* Evento onBlur adicionado para disparar a busca ao sair do input */}
+              <input 
+                type="text" 
+                name="cep" 
+                placeholder="00000-000" 
+                value={formData.cep} 
+                onChange={handleChange} 
+                onBlur={(e) => buscarCEP(e.target.value)} 
+                required 
+              />
+            </div>
             <div className="input-field flex-3">
               <label>Endereço</label>
               <input type="text" name="endereco" placeholder="Rua, número, bairro" value={formData.endereco} onChange={handleChange} required />
-            </div>
-            <div className="input-field flex-2">
-              <label>CEP</label>
-              <input type="text" name="cep" placeholder="00000-000" value={formData.cep} onChange={handleChange} required />
             </div>
           </div>
 

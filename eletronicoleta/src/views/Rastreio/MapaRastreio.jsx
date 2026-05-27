@@ -4,7 +4,6 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./MapaRastreio.css";
 
-// Conectores do WebSocket
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 
@@ -27,9 +26,9 @@ const truckIcon = L.divIcon({
   popupAnchor:[0, -26],
 });
 
-const clienteIcon = L.divIcon({
+const coletaIcon = L.divIcon({
   className: "",
-  html: `<div class="mapa-icon mapa-icon--cliente">EU</div>`,
+  html: `<div class="mapa-icon mapa-icon--coleta" style="background:#27ae60; color:white; border-radius:50%; width:44px; height:44px; display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow:0 4px 10px rgba(0,0,0,0.3); border:2px solid white;">📦</div>`,
   iconSize:   [44, 44],
   iconAnchor: [22, 44],
   popupAnchor:[0, -46],
@@ -56,87 +55,90 @@ async function buscarRota(from, to) {
   return null;
 }
 
-function AjustarCamera({ userLoc, truckPos }) {
+function AjustarCamera({ destino, truckPos }) {
   const map    = useMap();
   const fitted = useRef(false);
 
   useEffect(() => {
-    if (!userLoc || !truckPos) return;
+    if (!destino || !truckPos) return;
     if (!fitted.current) {
-      map.fitBounds(L.latLngBounds([userLoc, truckPos]), { padding: [70, 70], animate: true });
+      map.fitBounds(L.latLngBounds([destino, truckPos]), { padding: [70, 70], animate: true });
       fitted.current = true;
     } else {
       map.panTo(truckPos, { animate: true, duration: 0.6 });
     }
-  }, [truckPos, userLoc, map]);
+  }, [truckPos, destino, map]);
 
   return null;
 }
 
-const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress, onChegou }) => {
-  const [userLoc,      setUserLoc]     = useState(null);
-  const [truckPos,     setTruckPos]    = useState(ECO_LOC);
+const MapaRastreio = ({ coletaId, status, coletaCoords, onDurationFetched, onProgress, onChegou }) => {
+  const [truckPos,     setTruckPos]    = useState(ECO_LOC); 
   const [routeCoords, setRouteCoords] = useState([]);
   const [backendVivo, setBackendVivo] = useState(false);
 
+  const destinoOficialRef = useRef(null);
+  const ultimaPosicaoRotaRef = useRef(null);
   const onDurationRef  = useRef(onDurationFetched);
   const onProgressRef  = useRef(onProgress);
   const onChegouRef    = useRef(onChegou);
-  const userLocRef     = useRef(null);
   const truckPosRef    = useRef(ECO_LOC);
   const chegouRef      = useRef(false);
   const stompClientRef = useRef(null);
 
+  useEffect(() => { destinoOficialRef.current = coletaCoords; }, [coletaCoords]);
   useEffect(() => { onDurationRef.current  = onDurationFetched; }, [onDurationFetched]);
-  useEffect(() => { onProgressRef.current  = onProgress; },       [onProgress]);
-  useEffect(() => { onChegouRef.current    = onChegou; },         [onChegou]);
+  useEffect(() => { onProgressRef.current  = onProgress; },        [onProgress]);
+  useEffect(() => { onChegouRef.current    = onChegou; },          [onChegou]);
 
   const isPendente = status === "PENDENTE" || status === "Pendente";
 
   const atualizarTruck = useCallback(async (novaPosicao) => {
     if (chegouRef.current) return;
+    
     truckPosRef.current = novaPosicao;
     setTruckPos([...novaPosicao]);
 
-    if (!userLocRef.current) return;
-    const distAtual = haversine(novaPosicao, userLocRef.current);
+    const destino = destinoOficialRef.current;
+    if (!destino) return;
+
+    const distAtual = haversine(novaPosicao, destino);
 
     if (distAtual <= ARRIVAL_M) {
       chegouRef.current = true;
+      setRouteCoords([]); 
       onChegouRef.current?.();
       onProgressRef.current?.(0, 0);
       return;
     }
 
-    try {
-      const resultado = await buscarRota(novaPosicao, userLocRef.current);
-      if (resultado) {
-        setRouteCoords(resultado.coords);
-        onProgressRef.current?.(resultado.duracao, resultado.distancia);
+    // Sensibilidade alterada para 5 metros
+    if (!ultimaPosicaoRotaRef.current || haversine(ultimaPosicaoRotaRef.current, novaPosicao) > 5) {
+      ultimaPosicaoRotaRef.current = novaPosicao;
+      setRouteCoords([]); 
+      
+      try {
+        const resultado = await buscarRota(novaPosicao, destino);
+        if (resultado) {
+          setRouteCoords(resultado.coords); 
+          onProgressRef.current?.(resultado.duracao, resultado.distancia);
+        }
+      } catch (e) { 
+        console.warn("Rota indisponível.");
       }
-    } catch (e) { }
+    }
   }, []);
 
   useEffect(() => {
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords }) => {
-        const pos = [coords.latitude, coords.longitude];
-        setUserLoc(pos);
-        userLocRef.current = pos;
-        try {
-          const resultado = await buscarRota(ECO_LOC, pos);
-          if (resultado) {
-            setRouteCoords(resultado.coords);
-            onDurationRef.current?.(resultado.duracao, resultado.distancia);
-          }
-        } catch (e) { }
-      },
-      (err) => console.error("GPS Morador:", err),
-      { enableHighAccuracy: true, timeout: 20_000, maximumAge: 0 }
-    );
-  }, []);
+    if (isPendente || !coletaCoords) return;
+    buscarRota(ECO_LOC, coletaCoords).then(resultado => {
+      if(resultado) {
+        setRouteCoords(resultado.coords);
+        onDurationRef.current?.(resultado.duracao, resultado.distancia);
+      }
+    });
+  }, [isPendente, coletaCoords]);
 
-  // Conexão WebSocket para OUVIR o caminhão (Morador é espectador)
   useEffect(() => {
     if (isPendente || !coletaId) return;
 
@@ -148,7 +150,6 @@ const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress, onChego
       stompClientRef.current = stompClient;
       setBackendVivo(true);
 
-      // Ouvindo a rota da coleta
       stompClient.subscribe(`/topic/rastreio/${coletaId}`, (msg) => {
         const data = JSON.parse(msg.body);
         if (data?.lat && data?.lng) {
@@ -169,19 +170,29 @@ const MapaRastreio = ({ coletaId, status, onDurationFetched, onProgress, onChego
     <div className="mapar-wrapper">
       <MapContainer center={ECO_LOC} zoom={13} style={{ height: "100%", width: "100%", borderRadius: "16px" }} zoomControl scrollWheelZoom>
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <AjustarCamera userLoc={userLoc} truckPos={truckPos} />
-        {routeCoords.length > 1 && <Polyline positions={routeCoords} color="#4a90e2" weight={5} opacity={0.82} />}
-        {userLoc && <Marker position={userLoc} icon={clienteIcon}><Popup>📍 Local de Coleta</Popup></Marker>}
-        <Marker position={truckPos} icon={truckIcon}><Popup>🚛 Caminhão EcoTech</Popup></Marker>
+        <AjustarCamera destino={coletaCoords} truckPos={truckPos} />
+        
+        {!isPendente && routeCoords.length > 1 && (
+          <Polyline positions={routeCoords} color="#4a90e2" weight={5} opacity={0.82} />
+        )}
+
+        {coletaCoords && (
+          <Marker position={coletaCoords} icon={coletaIcon}>
+            <Popup>📦 Ponto de Coleta</Popup>
+          </Marker>
+        )}
+        
+        {!isPendente && (
+          <Marker position={truckPos} icon={truckIcon}>
+            <Popup>🚛 Caminhão EcoTech</Popup>
+          </Marker>
+        )}
       </MapContainer>
 
-      {/* Badge simplificado para o morador */}
       <div className={`mapar-badge`}>
         <span className="mapar-badge-dot" />
-        {backendVivo ? "🔴 Ao vivo" : "Aguardando partida..."}
+        {isPendente ? "Aguardando coletor..." : (backendVivo ? "🔴 Ao vivo" : "Aguardando partida...")}
       </div>
-
-      {/* BOTÕES DE CONTROLE REMOVIDOS DAQUI */}
     </div>
   );
 };
