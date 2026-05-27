@@ -241,3 +241,41 @@
 .campo-form-end input::placeholder {
   color: #9ca3af;
 }
+
+/* ── Ações da coleta (botão + lixeira lado a lado) ── */
+.coleta-acoes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ── Botão Excluir (lixeira) ── */
+.btn-excluir-coleta {
+  background: transparent;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  color: #dc2626;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.btn-excluir-coleta:hover {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #991b1b;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
+}
+
+.btn-excluir-coleta:active {
+  transform: translateY(0);
+  box-shadow: none;
+}

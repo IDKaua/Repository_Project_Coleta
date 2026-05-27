@@ -22,6 +22,15 @@ const EnderecoColeta = ({ formData, handleChange }) => (
       </div>
     </div>
 
+    {/* Telefone */}
+    <div className="input-row">
+      <div className="input-with-icon-side field-full">
+        <div className="icon-box-side"><i className="fas fa-phone"></i></div>
+        <input type="text" name="telefone" placeholder="Telefone"
+          value={formData.telefone} onChange={handleChange} required />
+      </div>
+    </div>
+
     {/* Rua + Número */}
     <div className="input-row">
       <div className="input-with-icon-side field-rua">

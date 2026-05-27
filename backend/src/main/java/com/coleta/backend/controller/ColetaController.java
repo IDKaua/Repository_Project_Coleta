@@ -122,4 +122,9 @@ public class ColetaController {
     public List<Coleta> getAllColetas() {
         return coletaRepository.findAll();
     }
+
+    @GetMapping("/coletor/{coletorId}/ativos")
+    public List<Coleta> getColetasAtivasDoColetor(@PathVariable Long coletorId) {
+        return coletaRepository.findByColetorIdAndStatusNot(coletorId, "COLETADO");
+    }
 }

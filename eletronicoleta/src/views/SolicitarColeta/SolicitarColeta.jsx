@@ -30,6 +30,7 @@ const SolicitarColeta = () => {
     bairro: "",
     cidade: "",
     uf: "",
+    telefone: usuarioLogado?.telefone || "",
     ponto_referencia: "",
     data: "",
     hora: "",
@@ -56,6 +57,7 @@ const SolicitarColeta = () => {
     const dadosParaOJava = {
       nome: formData.nome_solicitante || usuarioLogado?.nome || "",
       endereco: enderecoStr,
+      telefone: formData.telefone || usuarioLogado?.telefone || "",
       tipoResiduo: formData.tipo_residuo,
       descricao: `Coleta de ${formData.quantidade} item(ns) porte ${formData.porte}. Ponto: ${formData.ponto_referencia || "-"}. Agendamento: ${formData.data || ""} ${formData.hora || ""}`,
     };

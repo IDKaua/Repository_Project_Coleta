@@ -1,11 +1,37 @@
-import React from 'react';
+﻿import React from 'react';
 import './ColetaDetails.css';
 
-function ColetaDetails({ coletado }) {
+function ColetaDetails({ coleta, coletado, carregando }) {
+  if (carregando) {
+    return (
+      <div className="coleta-container">
+        <div className="coleta-card resumo-card">
+          <h2 className="resumo-title">RESUMO DA COLETA</h2>
+          <p className="coleta-carregando">Carregando dados da coleta...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!coleta) {
+    return (
+      <div className="coleta-container">
+        <div className="coleta-card resumo-card">
+          <h2 className="resumo-title">RESUMO DA COLETA</h2>
+          <p className="coleta-sem-coleta">Nenhuma coleta atribuída no momento.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const statusLabel = coletado
+    ? 'Coletado'
+    : coleta.status === 'EM ANDAMENTO'
+    ? 'Em rota'
+    : coleta.status || 'Pendente';
+
   return (
     <div className="coleta-container">
-
-      {/* ── CARD DE INSTRUÇÕES / CHEGADA ──────────────────────────────── */}
       <div className={`coleta-card previsao-card ${coletado ? 'previsao-card--sucesso' : ''}`}>
         <div className="card-header">
           <span className="header-icon">{coletado ? '🎉' : '✓'}</span>
@@ -18,7 +44,7 @@ function ColetaDetails({ coletado }) {
           {coletado ? (
             <>
               <p className="sucesso-mensagem">Você coletou a coleta!!</p>
-              <p className="sucesso-sub">Ótimo trabalho, Carlos 👏</p>
+              <p className="sucesso-sub">Ótimo trabalho!</p>
             </>
           ) : (
             <>
@@ -29,15 +55,14 @@ function ColetaDetails({ coletado }) {
         </div>
       </div>
 
-      {/* ── RESUMO DA COLETA ──────────────────────────────────────────── */}
       <div className="coleta-card resumo-card">
         <h2 className="resumo-title">RESUMO DA COLETA</h2>
 
         <div className="resumo-item">
           <span className="resumo-icon">♻️</span>
           <div className="resumo-content">
-            <p className="resumo-label">Items:</p>
-            <p className="resumo-value">2x Computadores, 1x Monitor</p>
+            <p className="resumo-label">Itens:</p>
+            <p className="resumo-value">{coleta.tipoResiduo || coleta.descricao || 'Resíduos'}</p>
           </div>
         </div>
 
@@ -45,30 +70,28 @@ function ColetaDetails({ coletado }) {
           <span className="resumo-icon">📍</span>
           <div className="resumo-content">
             <p className="resumo-label">Destino:</p>
-            <p className="resumo-value">Av. Principal, 123 - Centro</p>
+            <p className="resumo-value">{coleta.endereco || 'Endereço não informado'}</p>
           </div>
         </div>
 
         <div className="resumo-item">
-          <span className="resumo-icon">📦</span>
+          <span className="resumo-icon">📞</span>
           <div className="resumo-content">
-            <p className="resumo-label">Porte:</p>
-            <p className="resumo-value">Médio</p>
+            <p className="resumo-label">Contato:</p>
+            <p className="resumo-value">{coleta?.morador?.telefone || coleta.telefone || 'Telefone não informado'}</p>
           </div>
         </div>
 
-        {/* Status da coleta muda conforme coletado */}
         <div className="resumo-item">
           <span className="resumo-icon">{coletado ? '✅' : '🔄'}</span>
           <div className="resumo-content">
             <p className="resumo-label">Status:</p>
             <p className={`resumo-value ${coletado ? 'status-concluido' : 'status-em-rota'}`}>
-              {coletado ? 'Coletado' : 'Em rota'}
+              {statusLabel}
             </p>
           </div>
         </div>
       </div>
-
     </div>
   );
 }

@@ -1,49 +1,85 @@
-import React from 'react';
+﻿import React from 'react';
 import './ClienteInfo.css';
 
-function ClienteInfo() {
+function ClienteInfo({ coleta, carregando }) {
+  if (carregando) {
+    return (
+      <div className="cliente-card">
+        <div className="cliente-card-header">
+          <span className="cliente-tag">📋 COLETA DE HOJE</span>
+        </div>
+        <p className="cliente-carregando">Carregando informações da coleta...</p>
+      </div>
+    );
+  }
+
+  if (!coleta) {
+    return (
+      <div className="cliente-card">
+        <div className="cliente-card-header">
+          <span className="cliente-tag">📋 COLETA DE HOJE</span>
+        </div>
+        <p className="cliente-sem-coleta">Nenhuma coleta atribuída no momento.</p>
+      </div>
+    );
+  }
+
+  const clienteNome = coleta?.morador?.nome || coleta?.nome || 'Cliente';
+  const clienteTipo = coleta?.morador?.tipoUsuario === 'MORADOR' ? 'Cliente · Pessoa Física' : 'Cliente';
+  const endereco = coleta?.endereco || 'Endereço não informado';
+  const telefone = coleta?.morador?.telefone || coleta?.telefone || 'Telefone não informado';
+  const status = coleta?.status === 'EM ANDAMENTO' ? 'Em andamento' : coleta?.status || 'Pendente';
+  const avatar = clienteNome
+    .split(' ')
+    .map((parto) => parto[0])
+    .slice(0, 2)
+    .join('');
+
   return (
     <div className="cliente-card">
-
-      {/* ── Cabeçalho ────────────────────────────────────────────────── */}
       <div className="cliente-card-header">
         <span className="cliente-tag">📋 COLETA DE HOJE</span>
       </div>
 
-      {/* ── Identificação do cliente ──────────────────────────────────── */}
       <div className="cliente-perfil">
-        <div className="cliente-avatar">VA</div>
+        <div className="cliente-avatar">{avatar}</div>
         <div className="cliente-dados">
-          <p className="cliente-nome">Vitória Almeida</p>
-          <p className="cliente-tipo">Cliente · Pessoa Física</p>
+          <p className="cliente-nome">{clienteNome}</p>
+          <p className="cliente-tipo">{clienteTipo}</p>
         </div>
         <div className="cliente-status">
           <span className="status-dot" />
-          Aguardando
+          {status}
         </div>
       </div>
 
-      {/* ── Endereço ─────────────────────────────────────────────────── */}
       <div className="cliente-info-row">
         <span className="info-icon">📍</span>
         <div>
           <p className="info-label">Endereço</p>
-          <p className="info-value">Av. Principal, 123 – Pajuçara, Maceió – AL</p>
+          <p className="info-value">{endereco}</p>
         </div>
       </div>
 
-      {/* ── Telefone ─────────────────────────────────────────────────── */}
       <div className="cliente-info-row">
         <span className="info-icon">📞</span>
         <div>
           <p className="info-label">Contato</p>
-          <p className="info-value">(82) 99999-0000</p>
+          <p className="info-value">{telefone}</p>
         </div>
       </div>
 
-      {/* ── Botão ────────────────────────────────────────────────────── */}
-      <button className="btn-ligar">💬 Entrar em contato</button>
-
+      <a
+        className="btn-ligar"
+        href={telefone !== 'Telefone não informado' ? `tel:${telefone.replace(/\D/g, '')}` : '#'}
+        onClick={(e) => {
+          if (telefone === 'Telefone não informado') {
+            e.preventDefault();
+          }
+        }}
+      >
+        💬 Entrar em contato
+      </a>
     </div>
   );
 }
