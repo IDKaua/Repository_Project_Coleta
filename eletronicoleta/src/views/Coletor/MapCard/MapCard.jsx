@@ -1,75 +1,46 @@
-import React, { useEffect, useState, useRef } from 'react';
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Popup,
-  Polyline,
-  useMap,
-} from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import './MapCard.css';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import "./MapCard.css";
 
-// ─── Corrige ícones padrão do Leaflet ──────────────────────────────────────
+import SockJS from "sockjs-client";
+import { Stomp } from "@stomp/stompjs";
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl:       "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl:     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-// ─── Ícone caminhão (motorista) ─────────────────────────────────────────────
+const API_BASE         = "http://localhost:8080";
+const ECO_LOC          = [-9.654, -35.7315];
+const ARRIVAL_M        = 60;
+
 const truckIcon = L.divIcon({
-  className: '',
-  html: `<div class="map-icon map-icon--truck">🚛</div>`,
+  className: "",
+  html: `<div class="mapa-icon mapa-icon--truck">🚛</div>`,
   iconSize:   [48, 48],
   iconAnchor: [24, 24],
-  popupAnchor:[0, -26],
 });
 
-// ─── Ícone avatar (cliente) ─────────────────────────────────────────────────
-const clientIcon = L.divIcon({
-  className: '',
-  html: `
-    <div class="map-icon map-icon--client">
-      <span class="map-icon-initials">VA</span>
-      <div class="map-icon-pin"></div>
-    </div>`,
-  iconSize:   [50, 62],
-  iconAnchor: [25, 62],
-  popupAnchor:[0, -64],
+const clienteIcon = L.divIcon({
+  className: "",
+  html: `<div class="mapa-icon mapa-icon--cliente">EU</div>`,
+  iconSize:   [44, 44],
+  iconAnchor: [22, 44],
 });
 
-// ─── Coordenadas de Maceió ──────────────────────────────────────────────────
-// Cliente: Pajuçara, Maceió
-const CLIENT_POS       = [-9.6658, -35.7350];
-// Ponto de partida da simulação: Ponta Verde, Maceió (~3 km do cliente)
-const DRIVER_SIM_START = [-9.6410, -35.7120];
-
-// ─── Constantes ─────────────────────────────────────────────────────────────
-const ARRIVAL_RADIUS_M = 50;   // metros para considerar "chegou"
-const REROUTE_MIN_M    = 20;   // metros mínimos de deslocamento para rebuscar rota
-const SIM_STEP_MS      = 110;  // intervalo entre passos da simulação (ms)
-
-// ─── Distância geográfica (Haversine) ───────────────────────────────────────
 function haversine([lat1, lon1], [lat2, lon2]) {
-  const R    = 6_371_000;
-  const toRad = d => (d * Math.PI) / 180;
-  const dLat  = toRad(lat2 - lat1);
-  const dLon  = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  const R = 6_371_000;
+  const r = d => (d * Math.PI) / 180;
+  const a = Math.sin(r(lat2 - lat1) / 2) ** 2 + Math.cos(r(lat1)) * Math.cos(r(lat2)) * Math.sin(r(lon2 - lon1) / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// ─── Busca rota via OSRM (gratuito, sem API key) ────────────────────────────
-async function fetchRoute(from, to) {
-  const url =
-    `https://router.project-osrm.org/route/v1/driving/` +
-    `${from[1]},${from[0]};${to[1]},${to[0]}` +
-    `?overview=full&geometries=geojson`;
+async function buscarRota(from, to) {
+  const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson&annotations=true`;
   const res  = await fetch(url, { signal: AbortSignal.timeout(12_000) });
   const data = await res.json();
   if (data.routes?.[0]) {
@@ -78,345 +49,197 @@ async function fetchRoute(from, to) {
   return [];
 }
 
-// ─── Sub-componente: controla câmera do mapa ────────────────────────────────
-function MapController({ activePos, isFullscreen }) {
-  const map       = useRef(null);
-  const leaflet   = useMap();
-  const fittedRef = useRef(false);
-
-  // Corrige tiles em branco ao montar
+function MapResizer() {
+  const map = useMap();
   useEffect(() => {
-    const t = setTimeout(() => leaflet.invalidateSize(), 200);
-    return () => clearTimeout(t);
-  }, [leaflet]);
+    const timer = setTimeout(() => map.invalidateSize(), 500);
+    return () => clearTimeout(timer);
+  }, [map]);
+  return null;
+}
 
-  // Invalida tamanho ao entrar/sair de fullscreen
-  useEffect(() => {
-    const t = setTimeout(() => leaflet.invalidateSize(), 300);
-    return () => clearTimeout(t);
-  }, [isFullscreen, leaflet]);
+function AjustarCamera({ userLoc, truckPos }) {
+  const map    = useMap();
+  const fitted = useRef(false);
 
   useEffect(() => {
-    if (!activePos) return;
-    if (!fittedRef.current) {
-      // Primeira posição: enquadra driver + cliente
-      leaflet.fitBounds(L.latLngBounds([activePos, CLIENT_POS]), {
-        padding: [70, 70],
-        animate: true,
-      });
-      fittedRef.current = true;
+    if (!userLoc || !truckPos) return;
+    if (!fitted.current) {
+      map.fitBounds(L.latLngBounds([userLoc, truckPos]), { padding: [50, 50], animate: true });
+      fitted.current = true;
     } else {
-      // Segue o motorista suavemente
-      leaflet.panTo(activePos, { animate: true, duration: 0.5 });
+      map.panTo(truckPos, { animate: true, duration: 0.6 });
     }
-  }, [activePos, leaflet]);
+  }, [truckPos, userLoc, map]);
 
   return null;
 }
 
-// ─── Componente principal ───────────────────────────────────────────────────
-function MapCard({ onChegou, coletado }) {
-  // GPS
-  const [driverPos,    setDriverPos]    = useState(null);
-  const [route,        setRoute]        = useState([]);
-  const [geoStatus,    setGeoStatus]    = useState('requesting');
-  const [geoError,     setGeoError]     = useState('');
-  const [distancia,    setDistancia]    = useState(null);
+// Recebendo a 'coleta' completa nas props agora!
+const MapCard = ({ coleta, coletaId, onChegou, coletado }) => {
+  // O destino começa num local padrão, mas será atualizado
+  const [destinoLoc, setDestinoLoc] = useState([-9.6658, -35.7350]); 
+  
+  const [truckPos, setTruckPos] = useState(ECO_LOC);
+  const [routeCoords, setRouteCoords] = useState([]);
+  const [transmitindo, setTransmitindo] = useState(false);
 
-  // Simulação
-  const [simulating,   setSimulating]   = useState(false);
-  const [simPos,       setSimPos]       = useState(null);
-  const [simLoading,   setSimLoading]   = useState(false);
-
-  // Tela cheia
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  // Refs (evitam closures stale)
-  const mapCardRef     = useRef(null);
-  const watchIdRef     = useRef(null);
-  const simIntervalRef = useRef(null);
-  const simulatingRef  = useRef(false);   // espelho de simulating para callbacks
+  const truckPosRef    = useRef(ECO_LOC);
   const chegouRef      = useRef(false);
-  const lastFetchRef   = useRef(null);
+  const watchIdRef     = useRef(null); 
+  const stompClientRef = useRef(null);
   const onChegouRef    = useRef(onChegou);
 
   useEffect(() => { onChegouRef.current = onChegou; }, [onChegou]);
 
-  // ── Listener de fullscreen ────────────────────────────────────────────────
+  // ── MÁGICA: TRANSFORMA ENDEREÇO EM COORDENADA (Geocoding) ────────────────
   useEffect(() => {
-    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', onChange);
-    return () => document.removeEventListener('fullscreenchange', onChange);
-  }, []);
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      mapCardRef.current?.requestFullscreen().catch(console.warn);
-    } else {
-      document.exitFullscreen();
+    if (coleta && coleta.endereco) {
+      // Limpa a string tirando o "(Ref: ...)" para a API achar mais fácil
+      const enderecoLimpo = coleta.endereco.split(" (Ref:")[0];
+      
+      fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(enderecoLimpo)}&format=json&limit=1`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.length > 0) {
+            setDestinoLoc([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
+          }
+        })
+        .catch(err => console.error("Erro ao buscar coordenadas do destino:", err));
     }
-  };
+  }, [coleta]);
 
-  // ── GPS watchPosition ─────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!('geolocation' in navigator)) {
-      setGeoStatus('error');
-      setGeoError('Geolocalização não suportada neste navegador.');
+  // Atualiza usando o destinoLoc dinâmico
+  const atualizarTruck = useCallback(async (novaPosicao) => {
+    if (chegouRef.current) return;
+    truckPosRef.current = novaPosicao;
+    setTruckPos([...novaPosicao]);
+
+    const distAtual = haversine(novaPosicao, destinoLoc);
+
+    if (distAtual <= ARRIVAL_M) {
+      chegouRef.current = true;
       return;
     }
 
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      ({ coords }) => {
-        // Ignora GPS enquanto simulação está ativa
-        if (simulatingRef.current) return;
+    try {
+      const rota = await buscarRota(novaPosicao, destinoLoc);
+      if (rota.length > 1) setRouteCoords(rota);
+    } catch (e) { }
+  }, [destinoLoc]); // <-- Importante: dependência atualizada
 
-        const pos  = [coords.latitude, coords.longitude];
-        const dist = Math.round(haversine(pos, CLIENT_POS));
+  useEffect(() => {
+    if (!coletaId) return;
+    const socket = new SockJS(`${API_BASE}/ws`);
+    const stompClient = Stomp.over(socket);
+    stompClient.debug = () => {}; 
 
-        setDriverPos(pos);
-        setGeoStatus('tracking');
-        setDistancia(dist);
-
-        // Rebusca rota apenas se deslocou o suficiente
-        const moved = !lastFetchRef.current || haversine(pos, lastFetchRef.current) >= REROUTE_MIN_M;
-        if (moved) {
-          lastFetchRef.current = pos;
-          fetchRoute(pos, CLIENT_POS)
-            .then(r => { if (r.length > 1) setRoute(r); })
-            .catch(() => {});
-        }
-
-        // Chegada
-        if (!chegouRef.current && dist <= ARRIVAL_RADIUS_M) {
-          chegouRef.current = true;
-          setGeoStatus('arrived');
-          onChegouRef.current?.();
-        }
-      },
-      (err) => {
-        setGeoStatus('error');
-        const msgs = {
-          1: 'Permissão negada. Ative a localização nas configurações do navegador.',
-          2: 'Localização indisponível. Verifique se o GPS está ativo.',
-          3: 'Tempo esgotado ao obter localização. Tente novamente.',
-        };
-        setGeoError(msgs[err.code] ?? `Erro de geolocalização (código ${err.code}).`);
-      },
-      { enableHighAccuracy: true, timeout: 20_000, maximumAge: 0 }
-    );
+    stompClient.connect({}, () => {
+      stompClientRef.current = stompClient;
+    });
 
     return () => {
-      if (watchIdRef.current != null)
-        navigator.geolocation.clearWatch(watchIdRef.current);
+      if (stompClientRef.current) stompClientRef.current.disconnect();
     };
-  }, []); // roda uma única vez
+  }, [coletaId]);
 
-  // ── Iniciar simulação ─────────────────────────────────────────────────────
-  const startSimulation = async () => {
-    if (simIntervalRef.current) clearInterval(simIntervalRef.current);
-
-    simulatingRef.current = true;
-    chegouRef.current     = false;
-
-    // Usa a localização GPS real como ponto de partida.
-    // Só cai no DRIVER_SIM_START se o GPS ainda não tiver retornado nenhuma posição.
-    const startPos = driverPos ?? DRIVER_SIM_START;
-
-    setSimulating(true);
-    setSimLoading(true);
-    setSimPos(startPos);
-    setDistancia(null);
-
-    // Busca a rota a partir da posição atual do motorista até o cliente
-    let simRoute = [];
-    try {
-      simRoute = await fetchRoute(startPos, CLIENT_POS);
-    } catch (e) {
-      console.warn('[Simulação] Falha ao buscar rota:', e.message);
+  const iniciarRotaReal = () => {
+    if (!('geolocation' in navigator)) {
+      alert("Seu navegador não suporta GPS.");
+      return;
     }
-
-    setSimLoading(false);
-
-    if (simRoute.length < 2) {
-      simulatingRef.current = false;
-      setSimulating(false);
+    if (!coletaId) {
+      alert("Erro: ID da coleta não encontrado.");
       return;
     }
 
-    setRoute(simRoute);
-    let step = 0;
-    setSimPos(simRoute[0]);
+    setTransmitindo(true);
 
-    simIntervalRef.current = setInterval(() => {
-      step++;
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      async (posicao) => {
+        const novaPosicao = [posicao.coords.latitude, posicao.coords.longitude];
+        await atualizarTruck(novaPosicao);
 
-      // Fim da rota
-      if (step >= simRoute.length) {
-        clearInterval(simIntervalRef.current);
-        simulatingRef.current = false;
-        setSimulating(false);
-        setSimPos(null);
-        chegouRef.current = true;
-        onChegouRef.current?.();
-        return;
-      }
-
-      const pos  = simRoute[step];
-      const dist = Math.round(haversine(pos, CLIENT_POS));
-      setSimPos(pos);
-      setDistancia(dist);
-
-      // Chegada antecipada (dentro do raio)
-      if (!chegouRef.current && dist <= ARRIVAL_RADIUS_M) {
-        chegouRef.current = true;
-        clearInterval(simIntervalRef.current);
-        simulatingRef.current = false;
-        setSimulating(false);
-        onChegouRef.current?.();
-      }
-    }, SIM_STEP_MS);
+        if (stompClientRef.current && stompClientRef.current.connected) {
+          stompClientRef.current.send(
+            `/app/rastreio/${coletaId}/atualizar`,
+            {},
+            JSON.stringify({ lat: novaPosicao[0], lng: novaPosicao[1] })
+          );
+        }
+      },
+      (erro) => console.error("Erro no GPS Coletor:", erro),
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+    );
   };
 
-  // ── Parar simulação ───────────────────────────────────────────────────────
-  const stopSimulation = () => {
-    clearInterval(simIntervalRef.current);
-    simulatingRef.current = false;
-    setSimulating(false);
-    setSimPos(null);
-    setDistancia(null);
+  const pararRota = () => {
+    if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
+    setTransmitindo(false);
   };
 
-  // Cleanup ao desmontar
-  useEffect(() => () => clearInterval(simIntervalRef.current), []);
+  const handleFinalizar = async () => {
+    if (!window.confirm("Confirmar que o material foi coletado com sucesso?")) return;
 
-  // Posição exibida: simulação tem prioridade sobre GPS real
-  const displayPos = simulating ? simPos : driverPos;
+    try {
+      const response = await fetch(`${API_BASE}/api/coletas/finalizar/${coletaId}`, {
+        method: "PUT"
+      });
 
-  const distLabel =
-    distancia == null
-      ? '...'
-      : distancia >= 1000
-      ? `${(distancia / 1000).toFixed(1)} km`
-      : `${distancia} m`;
+      if (response.ok) {
+        alert("✨ Coleta finalizada com sucesso!");
+        pararRota(); 
+        if (onChegouRef.current) onChegouRef.current(); 
+      } else {
+        alert("Erro ao finalizar a coleta no servidor.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Erro de conexão ao tentar finalizar.");
+    }
+  };
+
+  useEffect(() => () => {
+    if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
+  }, []);
 
   return (
-    <div className="map-card" ref={mapCardRef}>
-
-      {/* ── Overlay de permissão / erro GPS (só quando não está simulando) ── */}
-      {(geoStatus === 'requesting' || geoStatus === 'error') && !simulating && (
-        <div className={`map-overlay ${geoStatus === 'error' ? 'map-overlay--error' : ''}`}>
-          <div className="map-permission-box">
-            <span className="map-permission-icon">
-              {geoStatus === 'error' ? '⚠️' : '📍'}
-            </span>
-            <p className="map-permission-text">
-              {geoStatus === 'error'
-                ? geoError
-                : 'Aguardando permissão de localização…'}
-            </p>
-            {geoStatus === 'requesting' && (
-              <span className="map-spinner" aria-label="Carregando" />
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── Mapa Leaflet ──────────────────────────────────────────────────── */}
-      <MapContainer
-        center={CLIENT_POS}
-        zoom={14}
-        className="leaflet-map-container"
-        zoomControl
-        scrollWheelZoom
-      >
-        <MapController activePos={displayPos} isFullscreen={isFullscreen} />
-
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-
-        {/* Linha da rota */}
-        {route.length > 1 && !coletado && (
-          <Polyline
-            positions={route}
-            color="#4a90e2"
-            weight={5}
-            opacity={0.85}
-          />
+    <div style={{ height: "500px", width: "100%", borderRadius: "16px", overflow: "hidden", position: "relative", border: "2px solid #e2e8f0" }}>
+      
+      <MapContainer center={ECO_LOC} zoom={14} style={{ height: "100%", width: "100%" }} zoomControl scrollWheelZoom>
+        <MapResizer />
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <AjustarCamera userLoc={destinoLoc} truckPos={truckPos} />
+        
+        {routeCoords.length > 1 && !coletado && (
+          <Polyline positions={routeCoords} color="#4a90e2" weight={5} opacity={0.8} />
         )}
-
-        {/* Marcador do cliente (avatar verde) */}
-        <Marker position={CLIENT_POS} icon={clientIcon}>
-          <Popup>
-            <strong>Vitória Almeida</strong>
-            <br />
-            Pajuçara, Maceió – AL
-          </Popup>
-        </Marker>
-
-        {/* Marcador do motorista (caminhão azul) */}
-        {displayPos && (
-          <Marker position={displayPos} icon={truckIcon}>
-            <Popup>
-              {simulating ? '🎮 Simulação em andamento' : '🚛 Você está aqui'}
-            </Popup>
-          </Marker>
-        )}
+        
+        {/* Usando o destino dinâmico aqui */}
+        <Marker position={destinoLoc} icon={clienteIcon}></Marker>
+        <Marker position={truckPos} icon={truckIcon}></Marker>
       </MapContainer>
 
-      {/* ── Botão tela cheia (canto superior direito) ─────────────────────── */}
-      <button
-        className="map-btn-fullscreen"
-        onClick={toggleFullscreen}
-        title={isFullscreen ? 'Sair da tela cheia' : 'Tela cheia'}
-        aria-label={isFullscreen ? 'Sair da tela cheia' : 'Abrir tela cheia'}
-      >
-        {isFullscreen ? '✕' : '⛶'}
-      </button>
-
-      {/* ── Barra de simulação (inferior) ────────────────────────────────── */}
       {!coletado && (
-        <div className="map-sim-bar">
-          {simulating ? (
-            <button className="map-sim-btn map-sim-btn--stop" onClick={stopSimulation}>
-              {simLoading ? (
-                <><span className="map-spinner map-spinner--sm" /> Carregando rota…</>
-              ) : (
-                <>■ Parar simulação</>
-              )}
-            </button>
+        <div style={{ position: "absolute", bottom: "20px", left: "50%", transform: "translateX(-50%)", zIndex: 999, display: "flex", gap: "10px", width: "max-content" }}>
+          {transmitindo ? (
+            <>
+              <button onClick={pararRota} style={{ padding: "12px 20px", backgroundColor: "#ef4444", color: "white", fontWeight: "bold", borderRadius: "8px", border: "none", cursor: "pointer", boxShadow: "0 4px 6px rgba(0,0,0,0.2)" }}>
+                ■ Parar
+              </button>
+              <button onClick={handleFinalizar} style={{ padding: "12px 20px", backgroundColor: "#3b82f6", color: "white", fontWeight: "bold", borderRadius: "8px", border: "none", cursor: "pointer", boxShadow: "0 4px 6px rgba(0,0,0,0.2)" }}>
+                ✅ Confirmar Coleta
+              </button>
+            </>
           ) : (
-            <button className="map-sim-btn" onClick={startSimulation}>
-              ▶ Simular rota
+            <button onClick={iniciarRotaReal} style={{ padding: "12px 24px", backgroundColor: "#10b981", color: "white", fontWeight: "bold", borderRadius: "8px", border: "none", cursor: "pointer", boxShadow: "0 4px 6px rgba(0,0,0,0.2)" }}>
+              ▶ Iniciar Rota (GPS Real)
             </button>
           )}
         </div>
       )}
-
-      {/* ── Badge de status (canto superior esquerdo) ────────────────────── */}
-      <div
-        className={[
-          'map-badge',
-          coletado    ? 'map-badge--success' : '',
-          simulating  ? 'map-badge--sim'     : '',
-        ].join(' ')}
-      >
-        <span className="map-badge-dot" />
-        {coletado
-          ? '✅ Coleta realizada!'
-          : simulating
-          ? simLoading
-            ? 'Buscando rota…'
-            : `🎮 Simulando · ${distLabel}`
-          : geoStatus === 'tracking'
-          ? `Em rota · ${distLabel}`
-          : geoStatus === 'error'
-          ? 'GPS indisponível'
-          : 'Aguardando GPS…'}
-      </div>
     </div>
   );
-}
+};
 
 export default MapCard;

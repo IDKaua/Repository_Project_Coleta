@@ -49,7 +49,7 @@ const PainelCooperativa = () => {
       setCarregando(false);
     }
   };
-
+  
   useEffect(() => {
     buscarColetas();
 

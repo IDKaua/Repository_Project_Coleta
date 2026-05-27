@@ -32,7 +32,9 @@ const FilaColetas = forwardRef(({ coletas, onSelectColeta, onFinalizar, onExclui
                 </span>
               </td>
               <td>
-                <div className="coleta-acoes">
+                <div className="coleta-acoes" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  
+                  {/* VERIFICAÇÃO DE STATUS ALTERADA AQUI */}
                   {c.status === "Pendente" ? (
                     <button
                       className="btn-novo"
@@ -42,13 +44,20 @@ const FilaColetas = forwardRef(({ coletas, onSelectColeta, onFinalizar, onExclui
                       Atribuir Coletor
                     </button>
                   ) : c.status === "Em andamento" ? (
-                    <button
-                      className="btn-novo"
-                      onClick={() => onFinalizar(c.id)}
-                      style={{ background: "#f39c12" }}
+                    <span
+                      style={{
+                        backgroundColor: "#fef3c7", // Fundo amarelo bem clarinho
+                        color: "#f59e0b",         // Texto Laranja-Amarelado solicitado
+                        padding: "8px 12px",
+                        borderRadius: "8px",
+                        fontWeight: "bold",
+                        fontSize: "12px",
+                        display: "inline-block",
+                        textAlign: "center"
+                      }}
                     >
-                      Finalizar Coleta
-                    </button>
+                    Coleta em Andamento
+                    </span>
                   ) : (
                     <span
                       className="porte-tag porte-pequeno"

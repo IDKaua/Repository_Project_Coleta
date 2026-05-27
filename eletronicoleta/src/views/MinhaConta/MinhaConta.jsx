@@ -8,10 +8,14 @@ import MeuPerfil from "./MeuPerfil";
 import MeusEnderecos from "./Meusenderecos";
 import HistoricoColetas from "./HistoricoColeta";
 
+// Removemos a importação do SolicitarColeta porque não vamos mais renderizar ele aqui dentro
+// import SolicitarColeta from "../SolicitarColeta/SolicitarColeta"; 
+
 const menuItems = [
-  { key: "perfil",    label: "Meu Perfil",          icon: "fas fa-user"           },
+  { key: "perfil",    label: "Meu Perfil",           icon: "fas fa-user"           },
   { key: "enderecos", label: "Meus Endereços",       icon: "fas fa-map-marker-alt" },
   { key: "historico", label: "Histórico de Coletas", icon: "fas fa-table"          },
+  { key: "solicitar", label: "Solicitar Coleta",     icon: "fas fa-plus"           } // Mantivemos o botão no menu
 ];
 
 const MinhaConta = () => {
@@ -66,6 +70,7 @@ const MinhaConta = () => {
       case "perfil":    return <MeuPerfil />;
       case "enderecos": return <MeusEnderecos />;
       case "historico": return <HistoricoColetas />;
+      case "solicitar": return <SolicitarColeta />; // Renderiza o componente de solicitar coleta quando essa aba for clicada
       default:          return null;
     }
   };
@@ -88,7 +93,14 @@ const MinhaConta = () => {
               <button
                 key={item.key}
                 className={`sidebar-item ${activeTab === item.key ? "active" : ""}`}
-                onClick={() => setActiveTab(item.key)}
+                // SE O BOTÃO FOR O DE SOLICITAR, NAVEGA PARA A ROTA. SE NÃO, APENAS TROCA A ABA DO PAINEL.
+                onClick={() => {
+                  if (item.key === "solicitar") {
+                    navigate("/solicitar-coleta");
+                  } else {
+                    setActiveTab(item.key);
+                  }
+                }}
               >
                 <i className={item.icon}></i>
                 <span>{item.label}</span>

@@ -31,7 +31,7 @@ const Rastreio = () => {
           const coletas = await response.json();
           const minhaColeta = coletas
             .filter(
-              (c) => c.morador?.id === usuarioLogado.id && c.status !== "COLETADO"
+              (c) => c.morador?.id === usuarioLogado.id && c.status.toUpperCase() !== "COLETADO" && c.status.toUpperCase() !== "CONCLUÍDA"
             )
             .reverse()[0];
           if (minhaColeta) setColetaAtiva(minhaColeta);

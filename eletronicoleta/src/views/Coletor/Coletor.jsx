@@ -51,6 +51,8 @@ function Coletor() {
 
         {/* Lado Direito - Mapa com GPS real + Rota OSRM */}
         <MapCard
+          coleta={coleta}
+          coletaId={coleta?.id} // <-- ESSA LINHA FALTAVA!
           onChegou={() => setColetado(true)}
           coletado={coletado}
         />

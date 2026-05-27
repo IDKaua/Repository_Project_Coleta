@@ -145,7 +145,7 @@ const Header = () => {
     setUsuarioLogado(null);
     setTemColetaAtiva(false);
     window.dispatchEvent(new Event("usuarioAtualizado"));
-    navigate("/login");
+    navigate("/");
   };
 
   return (
